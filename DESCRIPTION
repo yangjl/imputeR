@@ -1,0 +1,9 @@
+Package: imputer
+Type: Package
+Title: What the package does (short line)
+Version: 1.0
+Date: 2015-10-08
+Author: Jinliang Yang
+Maintainer: Jinliang Yang <yangjl0930@gmail.com>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
