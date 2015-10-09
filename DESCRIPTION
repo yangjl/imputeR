@@ -4,6 +4,5 @@ Title: Imputation of GBS genotypes via window phasing
 Version: 0.0.0.9000
 Date: 2015-10-08
 Authors@R: 'Jinliang Yang <yangjl0930@gmail.com> [aut, cre]'
-Description: ImputeR infer the most likely genotypes from raw GBS genotyping data, 
-which normally have high missing rate and high rate rate for heterozygote sites.
+Description: ImputeR infer the most likely genotypes from raw GBS genotyping data, which normally have high missing rate and high rate rate for heterozygote sites.
 License: MIT
