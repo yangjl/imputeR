@@ -7,11 +7,11 @@
 impute_mom(obs_mom, obs_kids, locus, p)
 }
 \arguments{
-\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, the copy of reference alleles.
+\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
 
-\item{obs_kids,}{A logical scalar. Should missing values (including NaN)
-be removed?}
+\item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
+Missing data should be coded with 3.}
 
 \item{p}{p=sample(sfs,numloci) #freqs of all loci sampled from site frequency spectrum (SFS)}
 }
@@ -26,20 +26,15 @@ If all inputs are integer and logical, then the output
   \url{http://en.wikipedia.org/wiki/Empty_sum} for more details.
 }
 \description{
-We have obs. mom and obs. (selfed) kids. We want to know the most likelihood of the mom's genotype.
-This function is to impute mom's genotype from a progeny array of k kids at a single locus.
+We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes.
+This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
 inferred_mom=1 -> 00, 2->01, 3->11
 }
 \examples{
-sum(1:10)
-sum(1:5, 6:10)
-sum(F, F, F, T, T)
+obs_mom <- c(0, 0, 0)
+obs_kids <- list(c(1, 1, 1), c(0, 0, 0), c(1, 1, 1))
 
 sum(.Machine$integer.max, 1L)
 sum(.Machine$integer.max, 1)
-
-\dontrun{
-sum("a")
-}
 }
 

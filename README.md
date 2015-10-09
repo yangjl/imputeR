@@ -1,21 +1,22 @@
 # imputeR
 
+GBS data normally have high missing rate and high error rate for heterozygote sites.
+ImputeR is a package to infer the most likely genotypes from raw GBS data.
 
+## Install
 
-ImputeR infer the most likely genotypes from raw GBS genotyping data, which normally have high missing rate and high rate rate for heterozygote sites.
+Install [devtools](https://github.com/hadley/devtools) first, and then use `devtools` to install `imputeR` from github.
 
-## Required Packages
+```R
+devtools::install_github("hadley/devtools")
+library(devtools)
+install_github("yangjl/imputeR")
+```
 
-From CRAN:
- - 
+## Documentation
 
-From [Bioconductor](http://bioconductor.org):
+A vignettes can be found [here]().
+Documented functions are listed below. Their usage information can by found by typing `?function_name` or `help(function_name)`.
 
- - GenomicRanges
- 
-Install these packages, then using
-[devtools](https://github.com/hadley/devtools) (which you can install via
-CRAN), do:
-
-    install_github("yangjl/imputeR")
+ - impute_mom
 

@@ -2,7 +2,13 @@
 title: "imputeR Documentation"
 author: "Jinliang Yang"
 date: "October 8, 2015"
-output: pdf_document
+output:
+  pdf_document:
+    number_sections: yes
+    toc: yes
+  html_document:
+    toc: yes
+  word_document: default
 ---
 
 # Crossing Scheme and the Experimental Design

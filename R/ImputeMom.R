@@ -1,14 +1,15 @@
 #'
 #' \code{Impute mom's genotype using mom and kids' GBS data. } 
 #'
-#' We have obs. mom and obs. (selfed) kids. We want to know the most likelihood of the mom's genotype. 
-#' This function is to impute mom's genotype from a progeny array of k kids at a single locus.
+#' We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes. 
+#' This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
 #' inferred_mom=1 -> 00, 2->01, 3->11
 #'
-#' @param obs_mom A vector of mom's GBS data. Coded with 0, 1 and 2, the copy of reference alleles. 
+#' @param obs_mom A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
-#' @param obs_kids A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, the copy of reference alleles. 
+#' @param obs_kids A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
+#' @param threshold default 2
 #' @param  p p=sample(sfs,numloci) #freqs of all loci sampled from site frequency spectrum (SFS)
 #' @return If all inputs are integer and logical, then the output
 #'   will be an integer. If integer overflow
@@ -19,16 +20,12 @@
 #'   Zero-length vectors have sum 0 by definition. See
 #'   \url{http://en.wikipedia.org/wiki/Empty_sum} for more details.
 #' @examples
-#' sum(1:10)
-#' sum(1:5, 6:10)
-#' sum(F, F, F, T, T)
+#' obs_mom <- c(0, 0, 0)
+#' obs_kids <- list(c(1, 1, 1), c(0, 0, 0), c(1, 1, 1))
 #'
 #' sum(.Machine$integer.max, 1L)
 #' sum(.Machine$integer.max, 1)
 #'
-#' \dontrun{
-#' sum("a")
-#' }
 
 impute_mom <- function(obs_mom, obs_kids, locus,  p){
     ### locus:
@@ -50,10 +47,7 @@ impute_mom <- function(obs_mom, obs_kids, locus,  p){
     }
     return(which(mom_probs==max(mom_probs))-1)
 }
-############################################################################
 
-## Functions
-############################################################################
 # Return HW probs
 hw_probs <- function(x){ return(c(x^2,2*x*(1-x),(1-x)^2))}
 ############################################################################
