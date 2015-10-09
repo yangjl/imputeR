@@ -6,3 +6,5 @@ Date: 2015-10-08
 Authors@R: 'Jinliang Yang <yangjl0930@gmail.com> [aut, cre]'
 Description: ImputeR infer the most likely genotypes from raw GBS genotyping data, which normally have high missing rate and high rate rate for heterozygote sites.
 License: MIT
+Suggests: knitr
+VignetteBuilder: knitr
