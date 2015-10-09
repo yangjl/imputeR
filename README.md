@@ -11,12 +11,13 @@ Install [devtools](https://github.com/hadley/devtools) first, and then use `devt
 devtools::install_github("hadley/devtools")
 library(devtools)
 install_github("yangjl/imputeR")
+library(imputeR)
 ```
 
 ## Documentation
 
-A vignettes can be found [here]().
-Documented functions are listed below. Their usage information can by found by typing `?function_name` or `help(function_name)`.
+A vignette can be found [here](https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf).
+Documented functions are listed as below. Their usage information can by found by typing `?function_name` or `help(function_name)`.
 
  - impute_mom
 

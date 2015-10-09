@@ -11,7 +11,11 @@ output:
   word_document: default
 ---
 
-# Crossing Scheme and the Experimental Design
+\newpage
+
+# Introduction
+
+## Crossing Scheme and the Experimental Design
 
 ![alt text](scheme.pdf)
 
