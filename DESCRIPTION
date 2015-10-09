@@ -1,9 +1,9 @@
-Package: imputer
+Package: imputeR
 Type: Package
-Title: What the package does (short line)
-Version: 1.0
+Title: Imputation of GBS genotypes via window phasing
+Version: 0.0.0.9000
 Date: 2015-10-08
-Author: Jinliang Yang
-Maintainer: Jinliang Yang <yangjl0930@gmail.com>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Authors@R: 'Jinliang Yang <yangjl0930@gmail.com> [aut, cre]'
+Description: ImputeR infer the most likely genotypes from raw GBS genotyping data, 
+which normally have high missing rate and high rate rate for heterozygote sites.
+License: MIT
