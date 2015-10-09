@@ -1,7 +1,7 @@
 # imputeR
 
-GBS data normally have high missing rate and high error rate for heterozygote sites.
-ImputeR is a package to infer the most likely genotypes from raw GBS data.
+GBS data normally have high error rate for heterozygote sites.
+**ImputeR** is a package to infer the most likely genotypes using raw GBS data.
 
 ## Install
 
