@@ -67,14 +67,7 @@ SimSelfer <- function(size.array=20, het.error=0.7, hom.error=0.002, numloci=100
 ran.hap <- function(numloci,p){
     sapply(1:numloci,function(x) rbinom(1,1,p[x]))
 }
-### setup the neutral SFS
-getsfs <- function(){
-    x=1:99/100 #0.01 bins of freq.
-    freq=1/x
-    sfs=as.numeric(); 
-    for(i in 1:99){sfs=c(sfs,rep(x[i],100*freq[i]))}
-    return(sfs)
-}
+
 ### Add error to diploid
 add_error<-function(diploid,hom.error,het.error){
     hets_with_error=sample(which(diploid==1),round(het.error*length(which(diploid==1))))

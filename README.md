@@ -17,7 +17,13 @@ library(imputeR)
 ## Documentation
 
 A vignette can be found [here](https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf).
-Documented functions are listed as below. Their usage information can by found by typing `?function_name` or `help(function_name)`.
+Documented functions are listed as below. Their usage information can be found by typing `?function_name` or `help(function_name)`.
 
  - impute_mom
+
+
+### Untils
+ - `getsfs`: setup the neutral SFS
+ - `error_mx` and `gen_error_mat`: get genotype error matrix for mom and kids.
+ - 
 

@@ -2,9 +2,13 @@
 % Please edit documentation in R/ImputeMom.R
 \name{impute_mom}
 \alias{impute_mom}
+\alias{impute_one_site}
 \title{\code{Impute mom's genotype using mom and kids' GBS data. }}
 \usage{
-impute_mom(obs_mom, obs_kids, locus, p)
+impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8,
+  oddratio = 2, return_all = FALSE)
+
+impute_one_site(locus, gen_error, p, probs)
 }
 \arguments{
 \item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
@@ -13,17 +17,17 @@ Missing data should be coded with 3.}
 \item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
 
-\item{p}{p=sample(sfs,numloci) #freqs of all loci sampled from site frequency spectrum (SFS)}
+\item{hom.error}{homozygous error rate, default=0.02.}
+
+\item{het.error}{heterozygous error rate, default=0.8.}
+
+\item{oddratio}{cutoff for the log likelihood ratio of the highest and the 2nd highest genotype.
+oddratio = NULL means to report the highest. Default value sets to 0.5.}
 }
 \value{
-If all inputs are integer and logical, then the output
-  will be an integer. If integer overflow
-  \url{http://en.wikipedia.org/wiki/Integer_overflow} occurs, the output
-  will be NA with a warning. Otherwise it will be a length-one numeric or
-  complex vector.
+return a data.frame with all the log likelihoods or return a vector of the most likely genotype.
 
-  Zero-length vectors have sum 0 by definition. See
-  \url{http://en.wikipedia.org/wiki/Empty_sum} for more details.
+  See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
 We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes.
@@ -32,9 +36,13 @@ inferred_mom=1 -> 00, 2->01, 3->11
 }
 \examples{
 obs_mom <- c(0, 0, 0)
-obs_kids <- list(c(1, 1, 1), c(0, 0, 0), c(1, 1, 1))
+obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
+c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
-sum(.Machine$integer.max, 1L)
-sum(.Machine$integer.max, 1)
+impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=0.5, return_all=TRUE)
+
+impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=NULL, return_all=FALSE)
+
+impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=2, return_all=FALSE)
 }
 

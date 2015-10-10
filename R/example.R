@@ -1,6 +1,6 @@
 #' Sum of vector elements.
 #'
-#' \code{sum} returns the sum of all the values present in its arguments.
+#' \code{doc_example} example.
 #'
 #' This is a generic function: methods can be defined for it directly
 #' or via the \code{\link{Summary}} group generic. For this to work properly,
@@ -29,4 +29,4 @@
 #' \dontrun{
 #' sum("a")
 #' }
-sum <- function(..., na.rm = TRUE) {}
+doc_example <- function(..., na.rm = TRUE) {}
