@@ -15,20 +15,20 @@ output:
 
 # Introduction
 
-## Crossing Scheme and the Experimental Design
+## Crossing Scheme and Experimental Design
 
 ![alt text](scheme.pdf)
 
 In this experiment, we selfed and outcrossed a set of ~70 teosinte landraces to get a progeny array composed of 4,875 individuals. The ~70 founders and all the progeny were genotyped using GBS. We also re-sequenced 20/70 founder lines (the others will be re-sequenced soon). Because of the high error rate of the GBS data, especially problematic for calling heterozygous sites, we employed a phasing and imputation strategy to infer the expected genotypes by combining parentage and GBS information.
 
-This file is to document the R codes we used to solve the problems step by step.
+This file is to document the R code we used to solve the problems step by step.
 
 
 # Infer mom's genotype from GBS data
 
-If we got mom's WGS data , this step can be skipped.
+If we got mom's WGS data, this step can be skipped.
 
-We have obs. mom and obs. (selfed) kids.  We want to know $P(G|\theta)$, or the probability of the mom's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
+We have observed mom and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of  mom's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
 
 $P(G|\theta) \propto P(\theta|G) \times P(G)$,   
 
@@ -37,10 +37,8 @@ This consists of observed genotypes ($G'$) of both mom and kids. So:
 
 $P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
 
-where, $P(G'_{mom}|G)$ is the probability of the mom's observed genotype given genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
-And $P(G'_{k}|G)$ is the probability of kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate.
-
-k and all the 
+where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
+And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate.
 
 ```{r, eval=FALSE}
 # set the path
@@ -72,9 +70,9 @@ $$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_i|G)} \right) \times \le
 
 ----------
 
-This function is to impute mom's genotype by finding the maximum likelihood of $P(G|\theta)$ from a progeny array of k kids at a single locus.
+This function is to impute mom's genotype by finding the maximum likelihood of $P(G|\theta)$ from a progeny array of $k$ kids at a single locus.
 - Where $\theta$ denotes observed data. It consists of observed genotypes ($G'$) of both mom and kids.  
-- $P(G)$ is the Hardy-Weinberg equilibrium estimated from the population.  
+- $P(G)$ is the probability of a genotype given Hardy-Weinberg frequencies estimated from the observed data.  
 - $P(G'_{mom}|G)$ is the error matrix estimated from the data, i.e. homozygote error = 0.02 and heterozygote error =0.6.  
 - $P(G'_i|G)$ is the error matrix times Mendelian segregation rate.  
 
@@ -89,7 +87,7 @@ $P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i
 - Where $\theta$ denotes observed data.
 - $P(H)$ is the probability of the haplotype for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
-- We assume all the possible haplotypes of a given window size are equally likely.
+- The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
 
 ----------
 
@@ -101,12 +99,7 @@ $P(H_k|\theta) \propto \left( \prod\limits_{i=k}\prod\limits_{l=1}^{n}{P(G'_{i,l
 - Where $\theta$ denotes observed data.
 - $P(H)$ is the probability of the haplotype for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
-- We assume all the possible haplotypes of a given window size are equally likely.
-
-
-
-
-
+- The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
 
 ```{r, eval=FALSE}
 phase <- read.csv("../data/sim_phasing_res.csv")
@@ -126,6 +119,7 @@ $P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i
 - Where $\theta$ denotes observed data.
 - $P(H_d)$ is the probability of the dad's haplotype for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
-- We assume all the possible haplotypes of a given window size are equally likely.
+- The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
+
 
 ----------
