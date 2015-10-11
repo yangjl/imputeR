@@ -11,10 +11,10 @@ impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8,
 impute_one_site(locus, gen_error, p, probs)
 }
 \arguments{
-\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
+\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the number of nonreference (alternative) alleles.
 Missing data should be coded with 3.}
 
-\item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
+\item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the number of alternative alleles.
 Missing data should be coded with 3.}
 
 \item{hom.error}{homozygous error rate, default=0.02.}
@@ -30,7 +30,7 @@ return a data.frame with all the log likelihoods or return a vector of the most 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
-We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes.
+We have observed mom and observed (selfed) kids. We want to know the likelihood of the mom's genotypes.
 This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
 inferred_mom=1 -> 00, 2->01, 3->11
 }

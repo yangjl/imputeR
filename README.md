@@ -22,8 +22,8 @@ Documented functions are listed as below. Their usage information can be found b
  - impute_mom
 
 
-### Untils
+### Utils
  - `getsfs`: setup the neutral SFS
  - `error_mx` and `gen_error_mat`: get genotype error matrix for mom and kids.
- - 
+
 
