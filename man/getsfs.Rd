@@ -7,10 +7,10 @@
 getsfs(x = 1:99/100)
 }
 \arguments{
-\item{x}{A vector of frequency bins. Default 0.01-0.99.}
+\item{x}{A vector of freq bins. Default 0.01-0.99.}
 }
 \value{
-Return a vector of neutral site frequency spectrum (SFS; N=51734)
+Return a vector of neutral SFS (N=51734)
 }
 \description{
 setup the neutral SFS

@@ -9,11 +9,13 @@
 #' Missing data should be coded with 3.
 #' @param obs_kids A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
-#' @param hom.error homozygous error rate, default=0.02.
-#' @param het.error heterozygous error rate, default=0.8.
-#' @param oddratio cutoff for the log likelihood ratio of the highest and the 2nd highest genotype. 
-#' oddratio = NULL means to report the highest. Default value sets to 0.5.
-#' @return return a data.frame with all the log likelihoods or return a vector of the most likely genotype. 
+#' @param hom.error Homozygous error rate, default=0.02.
+#' @param het.error Heterozygous error rate, default=0.8.
+#' @param oddratio The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes. 
+#' The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.
+#' @param returnall For function 'genomom', returnall=TRUE will return with all the information; returnall=FALSE will return
+#' mom's genotype only.
+#' @return return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype. 
 #'   
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #' @examples
@@ -21,17 +23,17 @@
 #' obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
 #' c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 #'
-#' impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=0.5, return_all=TRUE)
+#' impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
 #' 
-#' impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=NULL, return_all=FALSE)
+#' momgeno(geno, oddratio=0.5, returnall=FALSE)
 #' 
-#' impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=2, return_all=FALSE)
 #' 
-impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=2, return_all=FALSE){
+impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8){
     
     ### need to check genotypes
     numloci <- length(obs_mom)
     
+    message(sprintf("###>>> impute mom's genotype using [ %s ] kids in a full sib family ...", length(obs_kids)))
     ### get probability matrices
     gen_error <- gen_error_mat(hom.error, het.error)
     probs <- error_mx(hom.error, het.error)
@@ -43,6 +45,13 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddrati
     res <- lapply(1:length(obs_mom), function(locus) impute_one_site(locus, gen_error, p, probs))
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
     names(geno) <- c("g0", "g1", "g2")
+    
+    
+    return(geno)
+}
+
+#' @rdname impute_mom
+momgeno <- function(geno, oddratio=0.5, returnall=TRUE){
     geno$OR <- apply(geno, 1, function(v){
         n <- length(v)
         return(max(v) - sort(v, partial=n-1)[n-1])  
@@ -53,10 +62,10 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddrati
     geno$gor <- 3
     geno[geno$OR > oddratio, ]$gor <- geno[geno$OR > oddratio, ]$gmax
     
-    if(return_all== TRUE){
+    if(returnall){
         return(geno)
     }else{
-        if(is.NULL(oddratio)){
+        if(is.null(oddratio)){
             return(geno$g)    
         }else{
             return(geno$gor)

@@ -21,8 +21,28 @@ output:
 
 In this experiment, we selfed and outcrossed a set of ~70 teosinte landraces to get a progeny array composed of 4,875 individuals. The ~70 founders and all the progeny were genotyped using GBS. We also re-sequenced 20/70 founder lines (the others will be re-sequenced soon). Because of the high error rate of the GBS data, especially problematic for calling heterozygous sites, we employed a phasing and imputation strategy to infer the expected genotypes by combining parentage and GBS information.
 
-This file is to document the R code we used to solve the problems step by step.
+This file is to document the `R` package we developed to solve the problems step by step.
 
+## Install and Usage
+
+Install devtools first, and then use devtools to install imputeR from github.
+
+```{r, eval=FALSE}
+# install and load devtools
+devtools::install_github("hadley/devtools")
+library(devtools)
+# install and load imputeR
+install_github("yangjl/imputeR")
+library(imputeR)
+```
+
+## How to find help.
+Within "R" console, type `?impute_mom` or `help(impute_mom)` to find help information about the function.
+
+```{r}
+library(imputeR)
+?impute_mom
+```
 
 # Infer mom's genotype from GBS data
 
@@ -38,21 +58,16 @@ This consists of observed genotypes ($G'$) of both mom and kids. So:
 $P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
 
 where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
-And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate.
+And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
 
 ```{r, eval=FALSE}
 # set the path
-setwd("../")
-# loading all the R functions from folder "lib"
-f <- sapply(list.files(pattern="[.]R$", path="lib", full.names=TRUE), source)
+obs_mom <- c(0, 0, 0)
+obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
+c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
-
-set.seed(123456)
-sim <- SimSelfer(size.array=10, het.error=0.7, hom.error=0.002, numloci=100, rec=1.2, imiss=0.3)
-
-plotselfer(sim, kids=6:10, snps=40:100, cols=c("green", "blue"))
-
-
+geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
+momgeno(geno, oddratio=0.5, returnall=TRUE)
 #install.packages(c("devtools", "roxygen2", "testthat", "knitr"))
 
 ```

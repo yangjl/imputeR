@@ -3,34 +3,36 @@
 \name{impute_mom}
 \alias{impute_mom}
 \alias{impute_one_site}
+\alias{momgeno}
 \title{\code{Impute mom's genotype using mom and kids' GBS data. }}
 \usage{
-impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8,
-  oddratio = 2, return_all = FALSE)
+impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8)
+
+momgeno(geno, oddratio = 0.5)
 
 impute_one_site(locus, gen_error, p, probs)
 }
 \arguments{
-\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the number of nonreference (alternative) alleles.
+\item{obs_mom}{A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
 
-\item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the number of alternative alleles.
+\item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
 
-\item{hom.error}{homozygous error rate, default=0.02.}
+\item{hom.error}{Homozygous error rate, default=0.02.}
 
-\item{het.error}{heterozygous error rate, default=0.8.}
+\item{het.error}{Heterozygous error rate, default=0.8.}
 
-\item{oddratio}{cutoff for the log likelihood ratio of the highest and the 2nd highest genotype.
-oddratio = NULL means to report the highest. Default value sets to 0.5.}
+\item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
+The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.}
 }
 \value{
-return a data.frame with all the log likelihoods or return a vector of the most likely genotype.
+return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype.
 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
-We have observed mom and observed (selfed) kids. We want to know the likelihood of the mom's genotypes.
+We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes.
 This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
 inferred_mom=1 -> 00, 2->01, 3->11
 }

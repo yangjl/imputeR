@@ -18,7 +18,7 @@ gen_error_mat(hom.error, het.error)
 \code{error_mx} returns a list of three matrices.
 In this matrix,
 row1 is true_gen 00, row2 is true_gen 01, row3 is true_gen 11.
-cols 1-3 are observed genotype (00,01,11) and last col4 is the missing data.
+cols 1-3 are obs. genotype (00,01,11) and last col4 is the missing data.
 1. 00x01
 2. 01x01
 3. 11x01
@@ -30,7 +30,7 @@ Return error matrices
 #Genotype error matrix
 gen_error_mat(hom.error=0.02, het.error=0.8)
 
-#Genotype error by considering Mendelian segregation rate
+#Genotype error by consideringMendelian segregation rate
 error_mx(hom.error=0.02, het.error=0.8)
 }
 
