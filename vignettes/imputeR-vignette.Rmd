@@ -84,7 +84,7 @@ set.seed(123456)
 sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec=1.2, imiss=0.3)
 ```
 
-
+## Real Data
 ----------
 
 
@@ -97,6 +97,7 @@ $P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i
 - $P(H)$ is the probability of the haplotype for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
 - The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
+
 
 ----------
 
