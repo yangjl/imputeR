@@ -60,15 +60,19 @@ $P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'
 where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
 And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
 
-```{r, eval=FALSE}
-# set the path
+In the below toy example, we simulated a full sib family with 12 kids for 3 loci. Mom GBS genotype is `0 0 0` and kids are all `0 0 0`. In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` mom's genotype with the highest probability. `gor` mom's genotype with the highest probability and `OR` bigger than your threshould.
+
+```{r, eval=TRUE}
+# mom's GBS data is a vector
 obs_mom <- c(0, 0, 0)
+# kids GBS data is a list of vectors
 obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
 c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
+# run impute_mom to get the probabilities of mom's genotype of all loci
 geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
+# find the most likely genotype of mom
 momgeno(geno, oddratio=0.5, returnall=TRUE)
-#install.packages(c("devtools", "roxygen2", "testthat", "knitr"))
 
 ```
 

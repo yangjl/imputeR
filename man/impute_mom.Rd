@@ -8,7 +8,7 @@
 \usage{
 impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8)
 
-momgeno(geno, oddratio = 0.5)
+momgeno(geno, oddratio = 0.5, returnall = TRUE)
 
 impute_one_site(locus, gen_error, p, probs)
 }
@@ -25,6 +25,9 @@ Missing data should be coded with 3.}
 
 \item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
 The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.}
+
+\item{returnall}{For function 'genomom', returnall=TRUE will return with all the information; returnall=FALSE will return
+mom's genotype only.}
 }
 \value{
 return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype.
@@ -32,19 +35,17 @@ return a data.frame with all the log likelihoods. Using function \code{momgeno} 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
-We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes.
-This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
-inferred_mom=1 -> 00, 2->01, 3->11
+We have observed mom and observed (selfed) kids. We want to know the likelihood of the mom's genotypes.
+This function is to impute mom's most likely genotype from a progeny array of k kids by
+giving a log likelihood threshold.
 }
 \examples{
 obs_mom <- c(0, 0, 0)
 obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
 c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
-impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=0.5, return_all=TRUE)
+impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
 
-impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=NULL, return_all=FALSE)
-
-impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, oddratio=2, return_all=FALSE)
+momgeno(geno, oddratio=0.5, returnall=FALSE)
 }
 

@@ -1,9 +1,9 @@
 #'
 #' \code{Impute mom's genotype using mom and kids' GBS data. } 
 #'
-#' We have obs. mom and obs. (selfed) kids. We want to know the likelihood of the mom's genotypes. 
-#' This function is to impute mom's most likely genotype from a progeny array of k kids by giving a log likelihood threshold.
-#' inferred_mom=1 -> 00, 2->01, 3->11
+#' We have observed mom and observed (selfed) kids. We want to know the likelihood of the mom's genotypes. 
+#' This function is to impute mom's most likely genotype from a progeny array of k kids by 
+#' giving a log likelihood threshold.
 #'
 #' @param obs_mom A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
