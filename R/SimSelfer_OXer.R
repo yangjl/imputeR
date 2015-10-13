@@ -1,37 +1,28 @@
+#'
+#' \code{Simulate half sib and full sib GBS data. } 
+#'
+#' Simulate half sib's GBS genotype using 'SimSelfer',
+#' Simulate full sib's GBS genotype using 'SimOXer'.
+#' size.array=20, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3
+#' @param size.array Size of the progeny array.
+#' @param hom.error Homozygous error rate, default=0.002.
+#' @param het.error Heterozygous error rate, default=0.8.
+#' @param numloci Number of loci to simulate.
+#' @param rec Recombination rate, default=1.5.
+#' @param imiss Individual missing rate.
+#' @return return a list of two. The first is a vector of mom's genotype; the second is a list of vectors
+#' of kids' genotype. 
+#'   
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+#'   
+#' @examples
+#' SimSelfer(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
+#' 
+#' momgeno(geno, oddratio=0.5, returnall=FALSE)
+#' 
+#' 
 ### JRI: http://rpubs.com/rossibarra/self_impute
-SimOXer <- function(size.array=10, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3, misscode = 3){
-    
-    ### size.array: number of kids
-    ### imissing => individual missing rate, 
-    ### imiss > 1 will be sampled from a Beta(2,2) distribution (1- U-shaped)
-    ### rec: recombination rate 
-    
-    # make mom
-    sfs <- getsfs()
-    #get freqs for all loci
-    p <- sample(sfs, numloci, replace=TRUE) 
-    
-    ### make dad using a data.frame
-    sim_dad <- data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p))
-    
-    ### make an array of mom
-    mom_array <- vector("list", size.array)
-    mom_array <- lapply(1:size.array, function(i)
-        data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)))
-    
-    # make selfed progeny array
-    progeny <- vector("list", size.array)
-    progeny <- lapply(1:size.array, function(a) 
-        kid(mom=list(mom_array[[a]][,1], mom_array[[a]][,2]), dad=list(sim_dad[,1],sim_dad[,2]), 
-            het.error, hom.error, rec, imiss, misscode))
-    #progeny <- replicate(size.array, kid(true_mom,true_mom, het.error, hom.error, recombination=TRUE))
-    return(list(sim_dad, mom_array, progeny))
-    ### output a list of three, [[1]] data.frame of simulated dad [[2]] list of simulated mom
-    ### [[3]] list of simulated kids, [[3]][[n=10]], [[[1]] breakpoints of hap1 and hap2 [[2]] data.frame of kid genotype
-}
-
-####
-SimSelfer <- function(size.array=20, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3){
+SimSelfer <- function(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3){
     
     ### Simulate and Test
     ### imissing => individual missing rate, 
@@ -63,12 +54,45 @@ SimSelfer <- function(size.array=20, het.error=0.7, hom.error=0.002, numloci=100
     
 }
 
-### Create random haplotype with sfs
+#' @rdname SimSelfer
+SimOXer <- function(size.array=10, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3, misscode = 3){
+    
+    ### size.array: number of kids
+    ### imissing => individual missing rate, 
+    ### imiss > 1 will be sampled from a Beta(2,2) distribution (1- U-shaped)
+    ### rec: recombination rate 
+    
+    # make mom
+    sfs <- getsfs()
+    #get freqs for all loci
+    p <- sample(sfs, numloci, replace=TRUE) 
+    
+    ### make dad using a data.frame
+    sim_dad <- data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p))
+    
+    ### make an array of mom
+    mom_array <- vector("list", size.array)
+    mom_array <- lapply(1:size.array, function(i)
+        data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)))
+    
+    # make selfed progeny array
+    progeny <- vector("list", size.array)
+    progeny <- lapply(1:size.array, function(a) 
+        kid(mom=list(mom_array[[a]][,1], mom_array[[a]][,2]), dad=list(sim_dad[,1],sim_dad[,2]), 
+            het.error, hom.error, rec, imiss, misscode))
+    #progeny <- replicate(size.array, kid(true_mom,true_mom, het.error, hom.error, recombination=TRUE))
+    return(list(sim_dad, mom_array, progeny))
+    ### output a list of three, [[1]] data.frame of simulated dad [[2]] list of simulated mom
+    ### [[3]] list of simulated kids, [[3]][[n=10]], [[[1]] breakpoints of hap1 and hap2 [[2]] data.frame of kid genotype
+}
+
+#' @rdname SimSelfer Create random haplotype with sfs
 ran.hap <- function(numloci,p){
     sapply(1:numloci,function(x) rbinom(1,1,p[x]))
 }
 
-### Add error to diploid
+#' @rdname SimSelfer 
+# Add error to diploid
 add_error<-function(diploid,hom.error,het.error){
     hets_with_error=sample(which(diploid==1),round(het.error*length(which(diploid==1))))
     hom0_with_error=sample(which(diploid==0),round(hom.error*length(which(diploid==0))))
@@ -80,7 +104,8 @@ add_error<-function(diploid,hom.error,het.error){
     return(diploid)
 }
 
-# Copy mom to kids with recombination
+#' @rdname SimSelfer 
+#Copy mom to kids with recombination
 copy.mom <- function(mom, co_mean){ 
     co=rpois(1,co_mean) #crossovers
     numloci=length(mom[[1]])
@@ -96,6 +121,7 @@ copy.mom <- function(mom, co_mean){
     return(list(kpiece, data.frame(hap=hap, start=recp[-length(recp)], end=recp[-1]) ))
 }
 
+#' @rdname SimSelfer 
 # add missing
 missing.idx <- function(nloci, imiss){
     #hist(rbeta(10000, 2, 2))
@@ -109,9 +135,9 @@ missing.idx <- function(nloci, imiss){
     return(ml)
 }
 
-############################################################################
-# Make a kid
-#Returns list of true [[1]] and observed [[2]] kid
+
+#' @rdname SimSelfer 
+# Returns a list of true [[1]] and observed [[2]] kid
 kid <- function(mom, dad, het.error, hom.error, rec=1.5, imiss=0.3, misscode=3){
     if(rec==0){
         k1=mom[[rbinom(1,1,.5)+1]]

@@ -60,6 +60,7 @@ $P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'
 where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
 And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
 
+## Toy example
 In the below toy example, we simulated a full sib family with 12 kids for 3 loci. Mom GBS genotype is `0 0 0` and kids are all `0 0 0`. In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` mom's genotype with the highest probability. `gor` mom's genotype with the highest probability and `OR` bigger than your threshould.
 
 ```{r, eval=TRUE}
@@ -76,27 +77,16 @@ momgeno(geno, oddratio=0.5, returnall=TRUE)
 
 ```
 
+## Simulated Data
 
-This function is to impute mom's genotype from a progeny array of k kids at a single locus.
-inferred_mom=1 -> 00, 2->01, 3->11
-
-
-----------
-
-# Imputing Founder Genotypes  
-$P(G|\theta) \propto P(\theta|G) \times P(G)$   
-$$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_i|G)} \right) \times \left( \sum_{n=1}^{mom} P(G'_{mom}|G) \right) \times P(G)$$  
-
-----------
-
-This function is to impute mom's genotype by finding the maximum likelihood of $P(G|\theta)$ from a progeny array of $k$ kids at a single locus.
-- Where $\theta$ denotes observed data. It consists of observed genotypes ($G'$) of both mom and kids.  
-- $P(G)$ is the probability of a genotype given Hardy-Weinberg frequencies estimated from the observed data.  
-- $P(G'_{mom}|G)$ is the error matrix estimated from the data, i.e. homozygote error = 0.02 and heterozygote error =0.6.  
-- $P(G'_i|G)$ is the error matrix times Mendelian segregation rate.  
+```{r}
+set.seed(123456)
+sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec=1.2, imiss=0.3)
+```
 
 
 ----------
+
 
 # Phasing Founder Genotypes  
 $P(H|\theta) \propto P(\theta|H) \times P(H)$   
