@@ -3,32 +3,28 @@
 #'
 #' Simulate half sib's GBS genotype using 'SimSelfer',
 #' Simulate full sib's GBS genotype using 'SimOXer'.
-#' size.array=20, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3
+#' Missing code =3 for the simulators.
+#' 
 #' @param size.array Size of the progeny array.
 #' @param hom.error Homozygous error rate, default=0.002.
 #' @param het.error Heterozygous error rate, default=0.8.
 #' @param numloci Number of loci to simulate.
 #' @param rec Recombination rate, default=1.5.
 #' @param imiss Individual missing rate.
-#' @return return a list of two. The first is a vector of mom's genotype; the second is a list of vectors
-#' of kids' genotype. 
+#' @return return sim object: a list of two. The first is a data.frame of mom's genotype; the second is a list of 
+#' kids' genotype. Using functions of "sim_mom", "sim_kid" to get the mom and kids's simulated genotype.
 #'   
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #'   
 #' @examples
-#' SimSelfer(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
+#' sim1 <- SimSelfer(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
+#' sim2 <- SimOXer(size.array=10, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
 #' 
-#' momgeno(geno, oddratio=0.5, returnall=FALSE)
-#' 
+#' TO DO: figure out how to do S4 class/method.
 #' 
 ### JRI: http://rpubs.com/rossibarra/self_impute
 SimSelfer <- function(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3){
-    
-    ### Simulate and Test
-    ### imissing => individual missing rate, 
-    ### imiss > 1 will be sampled from a Beta(2,2) distribution (1- U-shaped)
-    ### rec: recombination rate 
-    
+
     misscode = 3
     # make mom
     sfs <- getsfs()
@@ -55,13 +51,14 @@ SimSelfer <- function(size.array=20, het.error=0.8, hom.error=0.002, numloci=100
 }
 
 #' @rdname SimSelfer
-SimOXer <- function(size.array=10, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3, misscode = 3){
+SimOXer <- function(size.array=10, het.error=0.7, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3){
     
     ### size.array: number of kids
     ### imissing => individual missing rate, 
     ### imiss > 1 will be sampled from a Beta(2,2) distribution (1- U-shaped)
     ### rec: recombination rate 
     
+    misscode = 3
     # make mom
     sfs <- getsfs()
     #get freqs for all loci
