@@ -40,7 +40,7 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8){
     
     ### get sfs
     sfs <- getsfs(x = 1:99/100)
-    p <- sample(sfs, numloci) #get freqs for all loci
+    p <- sample(sfs, numloci,replace=TRUE) #get freqs for all loci
     
     res <- lapply(1:length(obs_mom), function(locus) impute_one_site(locus, gen_error, p, probs))
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
