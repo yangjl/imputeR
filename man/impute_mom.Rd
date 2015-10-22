@@ -4,7 +4,7 @@
 \alias{impute_mom}
 \alias{impute_one_site}
 \alias{momgeno}
-\title{\code{Impute of mom's genotype using mom and kids' GBS data. }}
+\title{\code{Impute mom's genotype using mom and kids' GBS data. }}
 \usage{
 impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8)
 

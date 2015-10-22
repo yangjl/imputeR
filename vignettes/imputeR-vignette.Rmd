@@ -85,6 +85,25 @@ sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec
 ```
 
 ## Real Data
+
+To load `hdf5` file, you could install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. And then, following the below instructions.
+
+
+```{r}
+# install tasselr and ProgenyArray, if you fail to install it, checking all the dependencies.
+library(devtools)
+install_github("vsbuffalo/tasselr")
+install_github("vsbuffalo/ProgenyArray")
+
+library(parallel)
+options(mc.cores=NULL)
+# you need to specify the location where the packages were installed. 
+load_all("~/bin/tasselr")
+load_all("~/bin/ProgenyArray")
+
+# Note: at least 64G memory was needed to load the hdf5 file
+loading_h5_recode(h5file="largedata/teo.h5", save.file="largedata/out.RData")    
+```
 ----------
 
 
