@@ -79,7 +79,7 @@ momgeno(geno, oddratio=0.5, returnall=TRUE)
 
 ## Simulated Data
 
-```{r}
+```{r, eval=FALSE}
 set.seed(123456)
 sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec=1.2, imiss=0.3)
 ```
@@ -89,7 +89,7 @@ sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec
 To load `hdf5` file, you could install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. And then, following the below instructions.
 
 
-```{r}
+```{r, eval=FALSE}
 # install tasselr and ProgenyArray, if you fail to install it, checking all the dependencies.
 library(devtools)
 install_github("vsbuffalo/tasselr")
