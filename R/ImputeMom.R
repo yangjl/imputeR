@@ -56,7 +56,8 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
 }
 
 #' @rdname impute_mom
-momgeno <- function(geno, oddratio=0.5, returnall=TRUE){
+momgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){ 
+    #default oddratio of 0.6931472 is 2X as likely
     geno$OR <- apply(geno, 1, function(v){
         n <- length(v)
         return(max(v) - sort(v, partial=n-1)[n-1])  
@@ -64,14 +65,14 @@ momgeno <- function(geno, oddratio=0.5, returnall=TRUE){
     geno$gmax <- apply(geno[, 1:3], 1, function(v){
         return(which.max(v)-1)  
     })
-    geno$gor <- 3
+    geno$gor <- 3 # 3 is missing data
     geno[geno$OR > oddratio, ]$gor <- geno[geno$OR > oddratio, ]$gmax
     
     if(returnall){
         return(geno)
     }else{
         if(is.null(oddratio)){
-            return(geno$g)    
+            return(geno$gmax)   
         }else{
             return(geno$gor)
         } 

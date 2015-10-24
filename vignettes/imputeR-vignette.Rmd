@@ -40,7 +40,6 @@ library(imputeR)
 Within "R" console, type `?impute_mom` or `help(impute_mom)` to find help information about the function.
 
 ```{r}
-library(imputeR)
 ?impute_mom
 ```
 
