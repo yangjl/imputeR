@@ -35,12 +35,12 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
     ### need to check genotypes
     numloci <- length(obs_mom)
     
-    message(sprintf("###>>> impute mom's genotype using [ %s ] kids in a full sib family ...", length(obs_kids)))
+    message(sprintf("###>>> impute mom's genotype using [ %s ] selfed kids ...", length(obs_kids)))
     ### get probability matrices
     gen_error <- gen_error_mat(hom.error, het.error)
     probs <- error_mx(hom.error, het.error)
     
-    ### get sfs if not provided?
+    ### make sfs if not provided?
     if(is.null(p)){
         message(sprintf("###>>> no allele frequencies provided. generating random allele frequencies from a neutral SFS"))
         sfs <- getsfs(x = 1:99/100)
