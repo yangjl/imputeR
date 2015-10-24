@@ -6,7 +6,7 @@
 \alias{momgeno}
 \title{\code{Impute mom's genotype using mom and kids' GBS data. }}
 \usage{
-impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8)
+impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8, p = NULL)
 
 momgeno(geno, oddratio = 0.5, returnall = TRUE)
 
@@ -22,6 +22,9 @@ Missing data should be coded with 3.}
 \item{hom.error}{Homozygous error rate, default=0.02.}
 
 \item{het.error}{Heterozygous error rate, default=0.8.}
+
+\item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
+WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
 
 \item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
 The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.}
