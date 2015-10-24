@@ -5,8 +5,11 @@
 #' This function is to impute the parent's most likely genotype from a progeny array of k kids by 
 #' giving a log likelihood threshold.
 #'
-#' @param obs_parent A vector of the current observed parent's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
+#' @param parents A list of the genotypes of all possible parents, including current parent. These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
+#' @param obs_parent An integer referring to which parent is the current parent of interest.
+#' @param other_parents A vector of integers referring to which are the second parent of each kid. 
+#' Should be same length as number of kids (length(obs_kids))
 #' @param obs_kids A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
 #' @param hom.error Homozygous error rate, default=0.02.
@@ -31,10 +34,10 @@
 #' parentgeno(geno, oddratio=0.5, returnall=FALSE)
 #' 
 #' 
-impute_parent <- function(obs_parent, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
+impute_parent <- function( parents, obs_parent, other_parents, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
     
     ### need to check genotypes
-    numloci <- length(obs_parent)
+    numloci <- length(parents[[obs_parent]])
     
     message(sprintf("###>>> impute parent's genotype using [ %s ] kids ...", length(obs_kids)))
     ### get probability matrices
@@ -48,7 +51,7 @@ impute_parent <- function(obs_parent, obs_kids, hom.error=0.02, het.error=0.8,p=
         p <- sample(sfs, numloci,replace=TRUE) #get freqs for all loci
     }
     
-    res <- lapply(1:length(obs_parent), function(locus) impute_one_site(locus, gen_error, p[locus], probs, obs_parent, obs_kids))
+    res <- lapply(1:length(parents[[obs_parent]]), function(locus) impute_one_site(locus, gen_error, p[locus], probs, parents, obs_parent, other_parents, obs_kids))
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
     names(geno) <- c("g0", "g1", "g2")
     
@@ -56,7 +59,7 @@ impute_parent <- function(obs_parent, obs_kids, hom.error=0.02, het.error=0.8,p=
 }
 
 #' @rdname impute_parent
-impute_one_site <- function(locus, gen_error, p_locus, probs, obs_parent, obs_kids){
+impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_parent, other_parents, obs_kids)){
     obs_parent_probs <- as.numeric()
     for(inferred_parent in 1:3){
         #P(G'obs_parent|G)
