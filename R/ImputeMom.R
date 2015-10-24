@@ -11,6 +11,8 @@
 #' Missing data should be coded with 3.
 #' @param hom.error Homozygous error rate, default=0.02.
 #' @param het.error Heterozygous error rate, default=0.8.
+#' @param p vector of allele frequencies at each locus. should be estimated from set of all parents.
+#' WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.
 #' @param oddratio The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes. 
 #' The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.
 #' @param returnall For function 'genomom', returnall=TRUE will return with all the information; returnall=FALSE will return
@@ -28,7 +30,7 @@
 #' momgeno(geno, oddratio=0.5, returnall=FALSE)
 #' 
 #' 
-impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8){
+impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
     
     ### need to check genotypes
     numloci <- length(obs_mom)
@@ -38,9 +40,12 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8){
     gen_error <- gen_error_mat(hom.error, het.error)
     probs <- error_mx(hom.error, het.error)
     
-    ### get sfs
-    sfs <- getsfs(x = 1:99/100)
-    p <- sample(sfs, numloci,replace=TRUE) #get freqs for all loci
+    ### get sfs if not provided?
+    if(is.null(p)){
+        message(sprintf("###>>> no allele frequencies provided. generating random allele frequencies from a neutral SFS"))
+        sfs <- getsfs(x = 1:99/100)
+        p <- sample(sfs, numloci,replace=TRUE) #get freqs for all loci
+    }
     
     res <- lapply(1:length(obs_mom), function(locus) impute_one_site(locus, gen_error, p, probs))
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))

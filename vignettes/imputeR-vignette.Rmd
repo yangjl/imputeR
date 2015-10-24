@@ -71,10 +71,9 @@ obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0
 c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
 # run impute_mom to get the probabilities of mom's genotype of all loci
-geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
+geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, p=NULL)
 # find the most likely genotype of mom
 momgeno(geno, oddratio=0.5, returnall=TRUE)
-
 ```
 
 ## Simulated Data
@@ -104,6 +103,8 @@ load_all("~/bin/ProgenyArray")
 # Note: at least 64G memory was needed to load the hdf5 file
 loading_h5_recode(h5file="largedata/teo.h5", save.file="largedata/out.RData")    
 ```
+Then, for each mom, run as above in the toy example using only the selfed offspring. Note that unlike the toy example, you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead.  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
+
 ----------
 
 
