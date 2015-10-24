@@ -37,42 +37,42 @@ library(imputeR)
 ```
 
 ## How to find help.
-Within "R" console, type `?impute_mom` or `help(impute_mom)` to find help information about the function.
+Within "R" console, type `?impute_parent` or `help(impute_parent)` to find help information about the function.
 
 ```{r}
-?impute_mom
+?impute_parent
 ```
 
-# Infer mom's genotype from GBS data
+# Infer parent's genotype from GBS data
 
-If we got mom's WGS data, this step can be skipped.
+If we got parent's WGS data, this step can be skipped.
 
-We have observed mom and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of  mom's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
+We have observed parent and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of parent's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
 
 $P(G|\theta) \propto P(\theta|G) \times P(G)$,   
 
 where $P(G)$ is the probability of the genotype according to the Hardy-Weinberg equilibrium estimated from the population.
-This consists of observed genotypes ($G'$) of both mom and kids. So:
+This consists of observed genotypes ($G'$) of both parent and kids. So:
 
-$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
+$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{parent}|G) \times P(G)$,  
 
-where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
-And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
+where $P(G'_{parent}|G)$ is the probability of parent's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
+And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_parent` was implemented to compute parent's genotype probabilities.
 
 ## Toy example
-In the below toy example, we simulated a full sib family with 12 kids for 3 loci. Mom GBS genotype is `0 0 0` and kids are all `0 0 0`. In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` mom's genotype with the highest probability. `gor` mom's genotype with the highest probability and `OR` bigger than your threshould.
+In the below toy example, we simulated a full sib family with 12 kids for 3 loci. The observed parent's GBS genotype is `0 0 0` and kids are all `0 0 0`. In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshould.
 
 ```{r, eval=TRUE}
-# mom's GBS data is a vector
-obs_mom <- c(0, 0, 0)
+# parent's GBS data is a vector
+obs_parent <- c(0, 0, 0)
 # kids GBS data is a list of vectors
 obs_kids <- list(c(2, 0, 0), c(0, 0, 0), c(2, 0, 0), c(0, 0, 0), c(2, 0, 0), c(1, 0, 0),
 c(0, 0, 0), c(2, 0, 0), c(0, 0, 0), c(1, 1, 0), c(0, 0, 0), c(0, 0, 0))
 
-# run impute_mom to get the probabilities of mom's genotype of all loci
-geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, p=NULL)
-# find the most likely genotype of mom
-momgeno(geno, oddratio=0.5, returnall=TRUE)
+# run impute_parent to get the probabilities of parent's genotype of all loci
+geno <- impute_parent(obs_parent, obs_kids, hom.error=0.02, het.error=0.8, p=NULL)
+# find the most likely genotype of parent
+parentgeno(geno, oddratio=0.5, returnall=TRUE)
 ```
 
 ## Simulated Data
@@ -102,7 +102,7 @@ load_all("~/bin/ProgenyArray")
 # Note: at least 64G memory was needed to load the hdf5 file
 loading_h5_recode(h5file="largedata/teo.h5", save.file="largedata/out.RData")    
 ```
-Then, for each mom, run as above in the toy example using only the selfed offspring. Note that unlike the toy example, you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead.  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
+Then, for each parent, run as above in the toy example. Note that unlike the toy example, you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead.  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
 
 ----------
 
