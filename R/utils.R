@@ -43,19 +43,15 @@ error_mx <- function(hom.error, het.error){
     
     mx <- gen_error_mat(hom.error=hom.error, het.error=het.error)[, -4]
     probs <- vector("list",3)
-    ### 1: 00x01; 2: 01x01; 3: 11x01
-    probs[[1]] <- mx*matrix(c(1/2, 1/2, 0), nrow = 3,byrow=F,ncol=3)
-    probs[[2]] <- mx*matrix(c(1/4, 1/2, 1/4), nrow = 3,byrow=F,ncol=3)
-    probs[[3]] <- mx*matrix(c(0, 1/2, 1/2), nrow = 3,byrow=F,ncol=3)
-    
-    ### row names and col names
-    coln <- c("ob0", "ob1", "ob2", "obN")
+
+    #row/col names
     rown <- c("g0", "g1", "g2")
-    gen_error_mat <- cbind(gen_error_mat, 1)
-    probs[[1]] <- cbind(probs[[1]], 1)
-    probs[[2]] <- cbind(probs[[2]], 1)
-    probs[[3]] <- cbind(probs[[3]], 1)
+    coln <- c("ob0", "ob1", "ob2", "obN")
     
+    ### 1: 00x01; 2: 01x01; 3: 11x01
+    probs[[1]] <-  cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3,byrow=F,ncol=3),1); row.names(probs[[1]])=rown; colnames(probs[[1]])=coln
+    probs[[2]] <- cbind(mx*matrix(c(1/4, 1/2, 1/4), nrow = 3,byrow=F,ncol=3),1); row.names(probs[[2]])=rown; colnames(probs[[2]])=coln
+    probs[[3]] <- cbind(mx*matrix(c(0, 1/2, 1/2), nrow = 3,byrow=F,ncol=3),1); row.names(probs[[3]])=rown; colnames(probs[[3]])=coln
     return(probs)
 }
 

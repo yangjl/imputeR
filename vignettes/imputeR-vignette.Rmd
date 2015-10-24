@@ -66,8 +66,8 @@ In the below toy example, we simulated a full sib family with 12 kids for 3 loci
 # mom's GBS data is a vector
 obs_mom <- c(0, 0, 0)
 # kids GBS data is a list of vectors
-obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
-c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
+obs_kids <- list(c(2, 0, 0), c(0, 0, 0), c(2, 0, 0), c(0, 0, 0), c(2, 0, 0), c(1, 0, 0),
+c(0, 0, 0), c(2, 0, 0), c(0, 0, 0), c(1, 1, 0), c(0, 0, 0), c(0, 0, 0))
 
 # run impute_mom to get the probabilities of mom's genotype of all loci
 geno <- impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8, p=NULL)

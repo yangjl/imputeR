@@ -51,7 +51,6 @@ impute_mom <- function(obs_mom, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
     names(geno) <- c("g0", "g1", "g2")
     
-    
     return(geno)
 }
 
