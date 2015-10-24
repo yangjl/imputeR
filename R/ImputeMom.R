@@ -11,8 +11,6 @@
 #' Missing data should be coded with 3.
 #' @param hom.error Homozygous error rate, default=0.02.
 #' @param het.error Heterozygous error rate, default=0.8.
-#' @param p vector of allele frequencies at each locus. should be estimated from set of all parents.
-#' WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.
 #' @param oddratio The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes. 
 #' The oddratio = NULL means to report the most likely genotype. Default value sets to 0.5.
 #' @param returnall For function 'genomom', returnall=TRUE will return with all the information; returnall=FALSE will return
