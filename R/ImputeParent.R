@@ -59,7 +59,7 @@ impute_parent <- function( parents, obs_parent, other_parents, obs_kids, hom.err
 }
 
 #' @rdname impute_parent
-impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_parent, other_parents, obs_kids)){
+impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_parent, other_parents, obs_kids){
     obs_parent_probs <- as.numeric()
     for(inferred_parent in 1:3){
         #P(G'obs_parent|G)
@@ -69,25 +69,34 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
         pg <- hw_probs(p_locus)[inferred_parent]
                 
         #P(kids|G) sum of logs instead of product
-        pkg <- sum(sapply(1:length(obs_kids), function(z){                
-                
-            #find ML dad
-            s_parent_probs<-as.numeric()
-            for(second_parent in 1:3){
-                ps <- hw_probs(p_locus)[second_parent] #hw probs of given second parent genotype
-                ps_obs <- gen_error[second_parent, parents[[other_parents[z]]][locus]+1] #+1 because obs_parent is 0,1, or 2
-                s_k=sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1])
-                s_parent_probs[second_parent]=log(s_k)+log(ps)+log(ps_obs)
-            }
-            #if two dads equal, randomly picks
-            ml_dad=ifelse(length(which(s_parent_probs==max(s_parent_probs)))>1,sample(which(s_parent_probs==max(s_parent_probs)),1),which(s_parent_probs==max(s_parent_probs)))                   
-            log(sum(probs[[ml_dad]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+        pkg <- sum(sapply(1:length(obs_kids), function(z){
+            ifelse(other_parents[z]==obs_parent,
+                log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1])),    
+                log(sum(probs[[which.max(sapply(1:3, function(second_parent)  log(hw_probs(p_locus)[second_parent])+ log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+            )
         } ))    
         obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)
     }
     return(obs_parent_probs)
 }
 
+#explain this:
+#log(sum(probs[[which.max(sapply(1:3, function(second_parent)  log(hw_probs(p_locus)[second_parent])+ log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+# 
+# we're finding dad that maximizes likelihood of kid z and mom.
+# note that this isn't really dad,mom but instead focal parent (which we call mom) and other parents (which we call dads)
+# we do this for three dads over variable second_parent
+#
+# log(hw_probs(p_locus)[second_parent]) <<<< hw prob of a particular dad P(G)
+#
+# log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1]) <<<<< prob. of observed dad genotype given particular dad (P(G'|G))
+#
+# log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1])) <<<<< sum across unknown kid z's genotypes for particular dad (P(G_k|G_mom,G_dad))
+# 
+# sum the above and you get "blah" (see below)
+# which.max(sapply(1:3, function(second_parent) blah )) <<<< gives number of dad (out of 1:3) maximizes likelihood. call this ml_dad
+# we then put ml_dad into:
+# log(sum(probs[[ml_dad]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   <<<< sum across unknown kid's genotype for particular kid z, ml_dad, and inferred_parent (mom) 
 
 #' @rdname impute_parent
 parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){ 
