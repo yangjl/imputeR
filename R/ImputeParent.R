@@ -23,16 +23,7 @@
 #' parent's genotype only (either maxlikelihood or, if oddratio is specified, genotypes with low oddratios will be set to missing).
 #' @return return a data.frame with all the log likelihoods. Using function \code{parentgeno} to extract parent's genotype. 
 #'   
-#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
-#' @examples
-#' obs_parent <- c(0, 0, 0)
-#' obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
-#' c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
-#'
-#' impute_parent(obs_parent, obs_kids, hom.error=0.02, het.error=0.8)
-#' 
-#' parentgeno(geno, oddratio=0.5, returnall=FALSE)
-#' 
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more a simulated example and more details
 #' 
 impute_parent <- function( parents, obs_parent, other_parents, obs_kids, hom.error=0.02, het.error=0.8,p=NULL){
     
@@ -99,6 +90,14 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
 # log(sum(probs[[ml_dad]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   <<<< sum across unknown kid's genotype for particular kid z, ml_dad, and inferred_parent (mom) 
 
 #' @rdname impute_parent
+#' @param geno A table of genotype likelihoods from impute_parent
+#' @param oddratio The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes. 
+#' The oddratio = NULL means to report the most likely genotype. Default value sets to 0.6931472, 
+#' which is equivalent to most likely genotype being twice as likely as next most likely. 2X as likely
+#' @param returnall If TRUE this will return all the data. 
+#' Otherwise it will return the genotypes that pass the specified oddratio; 
+#' if no oddratio is specied (oddratio=NULL) then this returns the maximum likelihood genotypes
+
 parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){ 
     geno$OR <- apply(geno, 1, function(v){
         n <- length(v)
