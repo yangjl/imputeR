@@ -33,30 +33,31 @@ Missing data should be coded with 3.}
 \item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
 WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
 
+\item{geno}{A table of genotype likelihoods from impute_parent}
+
 \item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
 The oddratio = NULL means to report the most likely genotype. Default value sets to 0.6931472,
 which is equivalent to most likely genotype being twice as likely as next most likely. 2X as likely}
 
 \item{returnall}{For function 'parentgeno', returnall=TRUE will return with all the information; returnall=FALSE will return
 parent's genotype only (either maxlikelihood or, if oddratio is specified, genotypes with low oddratios will be set to missing).}
+
+\item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
+The oddratio = NULL means to report the most likely genotype. Default value sets to 0.6931472,
+which is equivalent to most likely genotype being twice as likely as next most likely. 2X as likely}
+
+\item{returnall}{If TRUE this will return all the data.
+Otherwise it will return the genotypes that pass the specified oddratio;
+if no oddratio is specied (oddratio=NULL) then this returns the maximum likelihood genotypes}
 }
 \value{
 return a data.frame with all the log likelihoods. Using function \code{parentgeno} to extract parent's genotype.
 
-  See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+  See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more a simulated example and more details
 }
 \description{
 We have observed parent and observed kids. We want to know the likelihood of the parent's possible genotypes.
 This function is to impute the parent's most likely genotype from a progeny array of k kids by
 giving a log likelihood threshold.
-}
-\examples{
-obs_parent <- c(0, 0, 0)
-obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
-c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
-
-impute_parent(obs_parent, obs_kids, hom.error=0.02, het.error=0.8)
-
-parentgeno(geno, oddratio=0.5, returnall=FALSE)
 }
 
