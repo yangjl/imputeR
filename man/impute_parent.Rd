@@ -4,7 +4,9 @@
 \alias{impute_one_site}
 \alias{impute_parent}
 \alias{parentgeno}
-\title{\code{Impute parent's genotype using parent and kids' GBS data. }}
+\title{We have observed parent and observed kids. We want to know the likelihood of the parent's possible genotypes.
+This function is to impute the parent's most likely genotype from a progeny array of k kids by
+giving a log likelihood threshold.}
 \usage{
 impute_parent(parents, obs_parent, other_parents, obs_kids, hom.error = 0.02,
   het.error = 0.8, p = NULL)
