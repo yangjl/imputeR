@@ -32,7 +32,7 @@ Install devtools first, and then use devtools to install imputeR from github.
 devtools::install_github("hadley/devtools")
 library(devtools)
 # install and load imputeR
-install_github("yangjl/imputeR")
+install_github("yangjl/imputeR",ref="outcross")
 library(imputeR)
 ```
 
