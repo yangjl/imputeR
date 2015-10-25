@@ -28,7 +28,7 @@ SimSelfer <- function(size.array=20, het.error=0.8, hom.error=0.002, numloci=100
     misscode = 3
     # make mom
     sfs <- getsfs()
-    p=sample(sfs,numloci) #get freqs for all loci
+    p=sample(sfs,numloci,replace=TRUE) #get freqs for all loci
     a1=ran.hap(numloci,p) #make haplotypes
     a2=ran.hap(numloci,p)
     
