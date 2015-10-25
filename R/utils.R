@@ -88,7 +88,7 @@ add_error<-function(diploid,hom.error,het.error){
 copy.mom <- function(mom, co_mean){ 
     co=rpois(1,co_mean) #crossovers
     numloci=length(mom[[1]])
-    recp=c(1,sort(round(runif(co, min=2, max=numloci-1))), numloci+1) #position   
+    recp=unique(c(1,sort(round(runif(co, min=2, max=numloci-1))), numloci+1)) #position   
     chrom=rbinom(1,1,.5)+1
     kpiece=as.numeric()
     hap <- c()
@@ -97,7 +97,7 @@ copy.mom <- function(mom, co_mean){
         hap <- c(hap, chrom)
         chrom=ifelse(chrom==1,2,1)  
     }     
-    return(list(kpiece, data.frame(hap=hap, start=recp[-length(recp)], end=recp[-1]) ))
+    return(kpiece)
 }
 
 # add missing
@@ -114,24 +114,22 @@ missing.idx <- function(nloci, imiss){
 }
 
 # Returns a list of true [[1]] and observed [[2]] kid
-kid <- function(mom, dad, het.error, hom.error, rec=1.5, imiss=0.3, misscode=3){
+kid <- function(p1, p2, het.error, hom.error, rec=1.5, imiss=0, misscode=3){
     if(rec==0){
-        k1=mom[[rbinom(1,1,.5)+1]]
-        k2=dad[[rbinom(1,1,.5)+1]]
+        k1=p1[[rbinom(1,1,.5)+1]]
+        k2=p2[[rbinom(1,1,.5)+1]]
     } else{
-        k1=copy.mom(mom,rec) # list
-        k2=copy.mom(dad,rec)
+        k1=copy.mom(p1,rec) # list
+        k2=copy.mom(p2,rec)
     }
-    true_kid=k1[[1]] + k2[[1]]
+    true_kid=k1 + k2
     #return(list(true_kid,obs_kid))
     
     obs_kid <- add_error(true_kid, hom.error, het.error)
-    if(imiss > 0){
+    if(imiss > 0){ #don't think the iff statement is necessary
         idx <- missing.idx(length(true_kid), imiss)
         obs_kid <- replace(obs_kid, idx, misscode)
     }
     
-    info <- list(k1[[2]], k2[[2]])
-    simk <- data.frame(hap1=k1[[1]], hap2=k2[[1]], obs= obs_kid )
-    return(list(info, simk))
+    return(list(true_kid, obs_kid))
 }

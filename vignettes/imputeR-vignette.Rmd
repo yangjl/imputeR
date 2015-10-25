@@ -52,6 +52,8 @@ In the below toy example, we simulate a family of self and outcross progeny with
 
 First we set some parameters for simulation
 ```{r}
+    source("~/Projects/imputeR/R/utils.R")
+    source("~/Projects/imputeR/R/ImputeParent.R")
     misscode = 3 # code for missing data
     numloci=3 # number of loci
     hom.error=0.02 #homozygous error rate
@@ -70,6 +72,11 @@ Then we make our focal parent
     
     ### make focal_parent using a data.frame
     sim_focal <- data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p))
+```
+
+What is our focal parent's real genotype:
+```{r}
+    sim_focal
 ```
 
 Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, then next `size.array-outcrossed` are just the focal parent.
@@ -102,9 +109,7 @@ Now we make a progeny array for these parents.
     progeny <- vector("list", size.array)
     #use the kid function!
     #each entry in progeny list has two vectors. [[1]] is true genotype, [[2]] is observed
-    progeny <- lapply(1:size.array, function(a) 
-        kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), p1=list(sim_focal[,1],sim_focal[,2]), 
-            het.error, hom.error, rec, imiss, misscode))
+    progeny <- lapply(1:size.array, function(a) kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), p1=list(sim_focal[,1],sim_focal[,2]), het.error, hom.error, rec, imiss, misscode))
     
     #now setup observed kids
     obs_kids=list()
