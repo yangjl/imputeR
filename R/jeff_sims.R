@@ -4,14 +4,18 @@
     ### imiss > 1 will be sampled from a Beta(2,2) distribution (1- U-shaped)
     ### rec: recombination rate 
 
-sim_errors=as.numeric()
+dat_errors=list()
+for(self in 1:8){
+    message(sprintf("iteration [ %s ] ...", self))    
+    selfing=(self-1)/10
+    sim_errors=as.numeric()
 for(sim in 1:10){
     misscode = 3
     numloci=500
     hom.error=0.02
     het.error=0.8
-    imiss=0.1
-    selfing=0.5
+    imiss=0.5
+#    selfing=0.5
     size.array=50
     rec=0.25
     # make mom
@@ -24,7 +28,7 @@ for(sim in 1:10){
     sim_focal <- data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p))
     
     ### start with outcrossed
-    outcrossed=rbinom(n=1,prob=selfing,size=size.array)
+    outcrossed=rbinom(n=1,prob=(1-selfing),size=size.array)
     out_parents <- vector("list", outcrossed)
     out_parents <- lapply(1:outcrossed, function(i)
             data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) 
@@ -35,7 +39,13 @@ for(sim in 1:10){
         sim_focal 
     )
     #combine
-    parent_array=c(out_parents,self_parents)
+    if(outcrossed==0){
+        parent_array=self_parents  
+    }else if (outcrossed==size.array){
+        parent_array=out_parents
+    }else{
+        parent_array=c(out_parents,self_parents)
+    }
 
     progeny <- vector("list", size.array)
     progeny <- lapply(1:size.array, function(a) 
@@ -43,22 +53,26 @@ for(sim in 1:10){
             het.error, hom.error, rec, imiss, misscode))
     #each entry in progeny list has two vectors. [[1]] is true genotype, [[2]] is observed
 
-    #now setup
+    #now setup observed kids
     obs_kids=list()
     for(i in 1:size.array){ obs_kids[[i]]=progeny[[i]][[2]] }
     
+    #get parents diploid genos
     parents<-lapply(parent_array, function(q) q[,1]+q[,2]  )
     parents[[size.array+1]]=c(sim_focal[,1]+sim_focal[,2])
+    #make some crappy gbs_parents (no missing data yet)
     gbs_parents=lapply(parents, function(a) add_error(a,hom.error,het.error))
     
-    obs_parent=size.array+1
-    other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed))
+    obs_parent=size.array+1 #focal parent
+    other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
     inferred_geno_likes=impute_parent(gbs_parents, obs_parent, other_parents, obs_kids, hom.error=0.02, het.error=0.8,p)
     bob=parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
     sim_errors[sim]=sum(abs(bob$gmax-parents[[obs_parent]]))    
 }
-    
-    
+dat_errors[[self]]=sim_errors
+}
+#boxplot(dat_errors,names=0:8*10,xlab="percent missing data",ylab="genotype errors (out of 500 loci)",main="500 loci, 50 progeny, 50% selfing");  
+boxplot(dat_errors,names=0:7*10,xlab="percent selfed progeny",ylab="genotype errors (out of 500 loci)",main="500 loci, 50 progeny, 50% missing data");  
     
 #' @rdname SimSelfer Create random haplotype with sfs
 ran.hap <- function(numloci,p){
@@ -126,7 +140,7 @@ kid <- function(p1, p2, het.error, hom.error, rec=1.5, imiss=0, misscode=3){
     #return(list(true_kid,obs_kid))
     
     obs_kid <- add_error(true_kid, hom.error, het.error)
-    if(imiss > 0){
+    if(imiss > 0){ #don't think the iff statement is necessary
         idx <- missing.idx(length(true_kid), imiss)
         obs_kid <- replace(obs_kid, idx, misscode)
     }
