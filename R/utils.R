@@ -1,6 +1,5 @@
 #' setup the neutral SFS
 #'
-#'
 #' @param x A vector of freq bins. Default 0.01-0.99.
 #' @return Return a vector of neutral SFS (N=51734)
 #' @examples
@@ -21,7 +20,6 @@ hw_probs <- function(x){ return(c(x^2,2*x*(1-x),(1-x)^2))}
 ############################################################################
 
 #' Return error matrices
-#'
 #'
 #' @param hom.error homozygous error rate, default=0.02.
 #' @param het.error heterozygous error rate, default=0.8.
@@ -59,7 +57,6 @@ error_mx <- function(hom.error, het.error){
     return(probs)
 }
 
-#' @rdname Utils
 gen_error_mat <- function(hom.error, het.error){
     mx <- matrix(c(1-hom.error,hom.error/2,hom.error/2,het.error/2,
                    1-het.error,het.error/2,hom.error/2,hom.error/2,1-hom.error),
@@ -70,13 +67,11 @@ gen_error_mat <- function(hom.error, het.error){
     return(mx)
 }
 
-#' @rdname Utils 
 # Create random haplotype with sfs
 ran.hap <- function(numloci,p){
     sapply(1:numloci,function(x) rbinom(1,1,p[x]))
 }
 
-#' @rdname Utils 
 # Add error to diploid
 add_error<-function(diploid,hom.error,het.error){
     hets_with_error=sample(which(diploid==1),round(het.error*length(which(diploid==1))))
@@ -89,7 +84,6 @@ add_error<-function(diploid,hom.error,het.error){
     return(diploid)
 }
 
-#' @rdname Utils 
 #Copy mom to kids with recombination
 copy.mom <- function(mom, co_mean){ 
     co=rpois(1,co_mean) #crossovers
@@ -106,7 +100,6 @@ copy.mom <- function(mom, co_mean){
     return(list(kpiece, data.frame(hap=hap, start=recp[-length(recp)], end=recp[-1]) ))
 }
 
-#' @rdname Utils 
 # add missing
 missing.idx <- function(nloci, imiss){
     #hist(rbeta(10000, 2, 2))
@@ -120,8 +113,6 @@ missing.idx <- function(nloci, imiss){
     return(ml)
 }
 
-
-#' @rdname Utils 
 # Returns a list of true [[1]] and observed [[2]] kid
 kid <- function(mom, dad, het.error, hom.error, rec=1.5, imiss=0.3, misscode=3){
     if(rec==0){
