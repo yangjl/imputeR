@@ -2,12 +2,9 @@
 % Please edit documentation in R/utils.R
 \name{error_mx}
 \alias{error_mx}
-\alias{gen_error_mat}
 \title{Return error matrices}
 \usage{
 error_mx(hom.error, het.error)
-
-gen_error_mat(hom.error, het.error)
 }
 \arguments{
 \item{hom.error}{homozygous error rate, default=0.02.}
