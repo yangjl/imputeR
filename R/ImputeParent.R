@@ -63,17 +63,27 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
     obs_parent_probs <- as.numeric()
     for(inferred_parent in 1:3){
         #P(G'obs_parent|G)
-        pgg <- gen_error[inferred_parent, obs_parent[locus]+1] #+1 because obs_parent is 0,1, or 2
+        pg_obs <- gen_error[inferred_parent, parents[[obs_parent]][locus]+1] #+1 because obs_parent is 0,1, or 2
+    
         #P(G)
         pg <- hw_probs(p_locus)[inferred_parent]
+                
         #P(kids|G) sum of logs instead of product
-        pkg <- sum(sapply(1:length(obs_kids), function(z){
-            ### take care of missing data
-            #if(progeny[[z]][[2]][locus] >= 0 & progeny[[z]][[2]][locus] <=2){
-            log(sum(probs[[inferred_parent]][, obs_kids[[z]][locus]+1]))
-            #}
-        } ))
-        obs_parent_probs[inferred_parent] <- pkg+log(pgg)+log(pg)
+        pkg <- sum(sapply(1:length(obs_kids), function(z){                
+                
+            #find ML dad
+            s_parent_probs<-as.numeric()
+            for(second_parent in 1:3){
+                ps <- hw_probs(p_locus)[second_parent] #hw probs of given second parent genotype
+                ps_obs <- gen_error[second_parent, parents[[other_parents[z]]][locus]+1] #+1 because obs_parent is 0,1, or 2
+                s_k=sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1])
+                s_parent_probs[second_parent]=log(s_k)+log(ps)+log(ps_obs)
+            }
+            #if two dads equal, randomly picks
+            ml_dad=ifelse(length(which(s_parent_probs==max(s_parent_probs)))>1,sample(which(s_parent_probs==max(s_parent_probs)),1),which(s_parent_probs==max(s_parent_probs)))                   
+            log(sum(probs[[ml_dad]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+        } ))    
+        obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)
     }
     return(obs_parent_probs)
 }

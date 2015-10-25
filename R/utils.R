@@ -40,18 +40,22 @@ hw_probs <- function(x){ return(c(x^2,2*x*(1-x),(1-x)^2))}
 #' error_mx(hom.error=0.02, het.error=0.8)
 #'
 error_mx <- function(hom.error, het.error){
-    
     mx <- gen_error_mat(hom.error=hom.error, het.error=het.error)[, -4]
     probs <- vector("list",3)
 
-    #row/col names
+    #row/col names <- currently not used, need to fix for clarity
     rown <- c("g0", "g1", "g2")
     coln <- c("ob0", "ob1", "ob2", "obN")
     
-    ### 1: 00x01; 2: 01x01; 3: 11x01
-    probs[[1]] <-  cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3,byrow=F,ncol=3),1); rownames(probs[[1]])=rown; colnames(probs[[1]])=coln
-    probs[[2]] <- cbind(mx*matrix(c(1/4, 1/2, 1/4), nrow = 3,byrow=F,ncol=3),1); rownames(probs[[2]])=rown; colnames(probs[[2]])=coln
-    probs[[3]] <- cbind(mx*matrix(c(0, 1/2, 1/2), nrow = 3,byrow=F,ncol=3),1); rownames(probs[[3]])=rown; colnames(probs[[3]])=coln
+    ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
+    
+    #AA by AA (1,0,0), Aa (1/2,1/2,0), aa (0,1,0)
+    probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(0, 1, 0), nrow = 3,byrow=F,ncol=3),1)   )
+    #Aa by AA (1/2,1/2,0), Aa (1/4,1/2,1/4), aa (0,1/2,1/2)
+    probs[[2]] <- list(cbind(mx*matrix(c(1/2,1/2,0), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(1/4,1/2,1/4), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(0,1/2,1/2), nrow = 3,byrow=F,ncol=3),1)   )
+    #aa by AA (0,1,0), Aa (0,1/2,1/2), aa (1,0,0)
+    probs[[3]] <- list(cbind(mx*matrix(c(0,1,0), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(0,1/2,1/2), nrow = 3,byrow=F,ncol=3),1),cbind(mx*matrix(c(0,0,1), nrow = 3,byrow=F,ncol=3),1)   )
+    
     return(probs)
 }
 
