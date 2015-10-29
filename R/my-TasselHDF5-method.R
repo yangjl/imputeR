@@ -1,5 +1,5 @@
 #'
-#' \code{Create imputeR object. } 
+#' \code{Create TasselHDF5 object. } 
 #'
 #' S4 method for TasselHDF5 object. Recode it into `0, 1, 2, 3` format. 
 #' In the genotype file, `0, 1, 2` indicate the copy of alternative allele,

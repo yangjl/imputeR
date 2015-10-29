@@ -25,5 +25,5 @@ save(file="largedata/teod.RData", list="teod")
 
 # reformat to imputeR object
 load("largedata/teod.RData")
-ob <- imputeRob(teod)
+ob <- imputeRob(teo=teod)
 save(file="largedata/teo.RData", list="ob")

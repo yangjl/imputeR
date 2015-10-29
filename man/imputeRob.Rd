@@ -2,7 +2,7 @@
 % Please edit documentation in R/my-TasselHDF5-method.R
 \name{imputeRob}
 \alias{imputeRob}
-\title{\code{Create imputeR object. }}
+\title{\code{Create TasselHDF5 object. }}
 \usage{
 imputeRob(teo)
 }
