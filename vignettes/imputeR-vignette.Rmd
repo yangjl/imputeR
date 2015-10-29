@@ -116,6 +116,7 @@ The following several lines help you to reformat the `*.h5` HDF5 file into an R 
 teo <- initTasselHDF5("largedata/teo.h5", version="5")
 teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
 # reformat to imputeR object
+source("R/my-TasselHDF5-method.R")
 ob <- imputeRob(teo)
 save(file="largedata/teo.RData", list="ob")  
 ```
