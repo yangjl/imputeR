@@ -8,7 +8,8 @@
 #' @param inpob A S4 method for TasselHDF5 object.
 #' @return return "Geno4imputeR" object with three slots: "genomx", "info", "imiss". 
 #' "genomx", genotype matrix. 
-#' "info", loci information, including SNP ID (snpid), chr, position (pos), loci missing rate (lmiss), minor allele freq (maf). 
+#' "info", loci information, including SNP ID (snpid), chr, position (pos), 
+#' loci missing rate (lmiss), minor allele freq (maf). 
 #' "imiss", individual plant missing rate.
 #'  
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.

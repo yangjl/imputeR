@@ -84,24 +84,40 @@ sim <- SimSelfer(size.array=10, het.error=0.8, hom.error=0.002, numloci=100, rec
 
 ## Real Data
 
-To load `hdf5` file, you could install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. And then, following the below instructions.
-
-
+To load `hdf5` file, you need to install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. If you fail to install them, please follow the above links and install the required dependencies. 
 ```{r, eval=FALSE}
-# install tasselr and ProgenyArray, if you fail to install it, checking all the dependencies.
-library(devtools)
-install_github("vsbuffalo/tasselr")
+# install devtools and then install the devlopmental version of tasselr and ProgenyArray using devtools. 
+devtools::install_github("hadley/devtools")
+library(devtools) 
+install_github("vsbuffalo/tasselr") 
 install_github("vsbuffalo/ProgenyArray")
+install_github("yangjl/imputeR")
+```
 
+Load the required packages. Note, you have to specify the locations of the packages if they were not in your searching path.
+```{r, eval=FALSE}
+# load packages
 library(parallel)
+library(devtools)
 options(mc.cores=NULL)
 # you need to specify the location where the packages were installed. 
 load_all("~/bin/tasselr")
 load_all("~/bin/ProgenyArray")
-
-# Note: at least 64G memory was needed to load the hdf5 file
-loading_h5_recode(h5file="largedata/teo.h5", save.file="largedata/out.RData")    
+load_all("~/Documents/Github/imputeR")
 ```
+
+The following several lines help you to reformat the `*.h5` HDF5 file into an R object. You need to specify the path of the HDF5 file.
+
+```{r, eval=FALSE}
+# Note: at least 100G memory was needed to load the hdf5 file
+# load h5file
+teo <- initTasselHDF5("largedata/teo.h5", version="5")
+teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
+# reformat to imputeR object
+ob <- imputeRob(teo)
+save(file="largedata/teo.RData", list="ob")  
+```
+
 Then, for each mom, run as above in the toy example using only the selfed offspring. Note that unlike the toy example, you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead.  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
 
 ----------

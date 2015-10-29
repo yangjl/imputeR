@@ -2,10 +2,10 @@
 # Oct. 29, 2015
 
 # install packages
-devtools::install_github("hadley/devtools")
-library(devtools) 
-install_github("vsbuffalo/tasselr") 
-install_github("vsbuffalo/ProgenyArray")
+#devtools::install_github("hadley/devtools")
+#library(devtools) 
+#install_github("vsbuffalo/tasselr") 
+#install_github("vsbuffalo/ProgenyArray")
 
 
 # load packages
@@ -18,9 +18,9 @@ load_all("~/bin/ProgenyArray")
 load_all("~/Documents/Github/imputeR")
 
 # Note: at least 100G memory was needed to load the hdf5 file
-#### load h5file
+# load h5file
 teo <- initTasselHDF5("largedata/teo.h5", version="5")
 teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
-
+# reformat to imputeR object
 ob <- imputeRob(teo)
 save(file="largedata/teo.RData", list="ob")
