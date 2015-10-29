@@ -8,7 +8,7 @@
 \usage{
 impute_mom(obs_mom, obs_kids, hom.error = 0.02, het.error = 0.8, p = NULL)
 
-momgeno(geno, oddratio = 0.5, returnall = TRUE)
+momgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 
 impute_one_site(locus, gen_error, p, probs)
 }
