@@ -19,10 +19,8 @@
 #' obj <- loading_hdf5(h5file="largedata/teo.h5")
 #' 
 setMethod("imputeRob",
-          c(object="TasselHDF5"),
-          function(object){
-              
-              teo <- inpob
+          c(teo="TasselHDF5"),
+          function(teo){
               pos <- as.data.frame(granges(teo))
               alt <- sapply(teo@alt, function(x) TASSELL_ALLELES[x+1L])
               info <- data.frame(snpid=rownames(geno(teo)), ref=ref(teo), alt=alt)
