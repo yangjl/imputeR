@@ -3,4 +3,5 @@
 .RData
 inst/doc
 largedata/*
+slurm-log/*
 
