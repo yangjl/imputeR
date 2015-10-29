@@ -16,13 +16,15 @@
 #' loading_h5_recode(h5file="largedata/teo.h5", savefile="out.RData")
 #' 
 loading_h5_recode <- function(h5file="largedata/teo.h5", save.file="out.RData"){
+
+TASSEL_ALLELES <- c("A", "C", "G", "T", "+", "-", NA, NA,NA, NA, NA, NA, NA, NA, NA, "N")
    
     #### load h5file
     teo <- initTasselHDF5(h5file, version="5")
     teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
     
     pos <- as.data.frame(granges(teo))
-    alt <- sapply(teo@alt, function(x) TASSELL_ALLELES[x+1L])
+    alt <- sapply(teo@alt, function(x) TASSELL_ALELES[x+1L])
     info <- data.frame(snpid=rownames(geno(teo)), ref=ref(teo), alt=alt)
     info <- merge(info, pos, by.x="snpid", by.y="row.names")
     
