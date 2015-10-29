@@ -5,4 +5,4 @@
 #SBATCH -e /home/jolyang/Documents/Github/imputeR/slurm-log/error-%j.txt
 
 R --no-save < profiling/bodedata/1.A.1_loading_recoding.R
-#sbatch -p bigmemh --mem 160000 --ntasks=20 slurm-script/run-teodata.sh
+#sbatch -p bigmemh --mem 160000 --ntasks=20 slurm-script/run-landdata.sh
