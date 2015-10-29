@@ -1,11 +1,10 @@
 #'
-#' \code{Load HDF5 file and recode the genotype matrix. } 
+#' \code{Create imputeR object. } 
 #'
 #' Load HDF5 file and recode into `0, 1, 2, 3` format. In the genotype file, `0, 1, 2` indicate the copy of alternative allele,
 #' `3` indicate missing data. This function also calculate individual and locus missing rate.
 #' 
-#' @param h5file h5 file from tassel. For example, "teo.h5", 
-#' @param save.file RData object to save. For example, "out.RData".
+#' @param inpob object generated from tasselr. For example, "teo". 
 #' @return return "Geno4imputeR" object with three slots: "genomx", "info", "imiss". 
 #' "genomx", genotype matrix. 
 #' "info", loci information, including SNP ID (snpid), chr, position (pos), loci missing rate (lmiss), minor allele freq (maf). 
@@ -17,12 +16,9 @@
 #' # note this function requires at least 100G memeory to load teo.h5 file.
 #' obj <- loading_hdf5(h5file="largedata/teo.h5")
 #' 
-loading_hdf5 <- function(h5file="largedata/teo.h5"){
+imputeRob <- function(inpob){
    
-    #### load h5file
-    teo <- initTasselHDF5(h5file, version="5")
-    teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
-    
+    teo <- inpob
     pos <- as.data.frame(granges(teo))
     alt <- sapply(teo@alt, function(x) TASSELL_ALLELES[x+1L])
     info <- data.frame(snpid=rownames(geno(teo)), ref=ref(teo), alt=alt)
