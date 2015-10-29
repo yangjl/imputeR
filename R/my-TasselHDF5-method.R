@@ -19,7 +19,7 @@
 #' obj <- loading_hdf5(h5file="largedata/teo.h5")
 #' 
 setMethod("imputeRob",
-          c(teo="TasselHDF5"),
+          signature(teo="TasselHDF5"),
           function(teo){
               pos <- as.data.frame(granges(teo))
               alt <- sapply(teo@alt, function(x) TASSELL_ALLELES[x+1L])
@@ -58,6 +58,7 @@ setMethod("imputeRob",
               info <- merge(info, maf, by.x="snpid", by.y="row.names")
               info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf")]
               names(info)[1:3] <- c("snpid", "chr", "pos")
+              
               obj <- new("Geno4imputeR",
                          genomx = genos,
                          info = info,

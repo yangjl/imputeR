@@ -19,8 +19,10 @@ load_all("~/Documents/Github/imputeR")
 
 # Note: at least 100G memory was needed to load the hdf5 file
 # load h5file
-teo <- initTasselHDF5("largedata/teo.h5", version="5")
-teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
+teod <- initTasselHDF5("largedata/teo.h5", version="5")
+teod <- loadBiallelicGenotypes(teod, verbose = TRUE)
+save(file="largedata/teod.RData", list="teod")
+
 # reformat to imputeR object
-ob <- imputeRob(teo)
+ob <- imputeRob(teod)
 save(file="largedata/teo.RData", list="ob")
