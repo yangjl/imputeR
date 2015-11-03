@@ -70,7 +70,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
 }
 
 #explain this:
-#log(sum(probs[[which.max(sapply(1:3, function(second_parent)  log(hw_probs(p_locus)[second_parent])+ log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+#log(sum(probs[[which.max(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent])+ log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
 # 
 # we're finding dad that maximizes likelihood of kid z and mom.
 # note that this isn't really dad,mom but instead focal parent (which we call mom) and other parents (which we call dads)

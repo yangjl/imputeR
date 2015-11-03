@@ -52,8 +52,10 @@ comp_alleles <- function(wgs, gbs){
         }
         
     }
-    message(sprintf("###>>> Heterozygote error rate [ %s ] and Homozygote error rate [ %s ]", round(heterr/hettot, 3)*100, round(homerr/homtot, 3)*100))
-    message(sprintf("###>>> het err=[ %s ]; het tot=[ %s ]; hom err=[ %s ]; hom err=[ %s ]", heterr, hettot, homerr, homtot))
+    message(sprintf("###>>> Heterozygote error rate [ %s ] and Homozygote error rate [ %s ]",
+                    round(heterr/hettot, 3)*100, round(homerr/homtot, 3)*100))
+    message(sprintf("###>>> het err=[ %s ]; het tot=[ %s ]; hom err=[ %s ]; hom err=[ %s ]", 
+                    heterr, hettot, homerr, homtot))
     return(c(heterr, hettot, homerr, homtot))
     
 }

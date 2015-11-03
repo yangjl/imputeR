@@ -47,7 +47,7 @@ Within "R" console, type `?impute_parent` or `help(impute_parent)` to find help 
 
 If we have parent's WGS data, this step can be skipped.
 
-## Example
+## Example: step by step
 In the below toy example, we simulate a family of self and outcross progeny with 50 kids for 3 loci. We will assume 50% missing data, and 50% selfing rate. 
 
 Load the packages.
@@ -87,7 +87,7 @@ What is our focal parent's real genotype:
 ```
 
 
-Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, then next `size.array-outcrossed` are just the focal parent.
+Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, then next `size.array - outcrossed` are just the focal parent.
 ```{r}
     #first outcrossed
     outcrossed=rbinom(n=1,prob=(1-selfing),size=size.array)
@@ -136,7 +136,7 @@ Now we impute the focal parent
     parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
 ```
 
-In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshould.
+In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
 
 ## Real Data
 
