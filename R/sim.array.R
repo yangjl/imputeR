@@ -1,29 +1,33 @@
 #'
-#' \code{Simulate progeny array. } 
+#' \code{A progeny array simulator.} 
 #'
-#' Simulate half sib's GBS genotype using 'SimSelfer',
-#' Simulate full sib's GBS genotype using 'SimOXer'.
-#' Missing code =3 for the simulators.
+#' Simulate a S4 GBS.array object with true_parents, gbs_parents, true_kids, gbs_kids and pedigree.
 #' 
 #' @param size.array Size of the progeny array.
-#' @param hom.error Homozygous error rate, default=0.002.
-#' @param het.error Heterozygous error rate, default=0.8.
 #' @param numloci Number of loci to simulate.
-#' @param rec Recombination rate, default=1.5.
-#' @param imiss Individual missing rate.
-#' @return return sim object: a list of two. The first is a data.frame of mom's genotype; the second is a list of 
-#' kids' genotype. Using functions of "sim_mom", "sim_kid" to get the mom and kids's simulated genotype.
-#'   
+#' 
+#' @param hom.error Homozygous error rate, default=0.02.
+#' @param het.error Heterozygous error rate, default=0.8.
+#' @param rec Recombination rate, default=0.25.
+#' @param selfing Proportion of selfed progeny, default=0.5.
+#' @param imiss Individual missing rate, default=0.5.
+#' @param misscode Missing code, default=3.
+#' 
+#' @return Return GBS.array object. 
+#' Slot1: true_parents, a list of data.frame(hap1, hap2).
+#' Slot2: gbs_parents, a list of genotypes. For example, c(1, 2, 2, 0, 3).
+#' Slot3: true_kids, a list of data.frame(hap1, hap2).
+#' Slot4: gbs_kids, a list of kid genotypes. For example, c(1, 1, 3, 1, 2).
+#' Slot5: pedigree, a data.frame (kid, p1, p2). Note, p1 is the focal parent.
+#' 
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #'   
 #' @examples
-#' sim1 <- SimSelfer(size.array=20, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
-#' sim2 <- SimOXer(size.array=10, het.error=0.8, hom.error=0.002, numloci=1000, rec=1.5, imiss=0.3)
-#' 
-#' TO DO: figure out how to do S4 class/method.
+#' test <- sim.array(size.array=50, numloci=10)
+#' class(test)
 #' 
 ### JRI: http://rpubs.com/rossibarra/self_impute
-sim.array <- function(size.array=20, numloci=10, selfing=0.5, het.error=0.8, hom.error=0.002,  rec=1.5, imiss=0.3, misscode = 3){
+sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.25, selfing=0.5, imiss=0.5, misscode=3){
 
     #############################
     # 1st, make our focal parent
@@ -71,8 +75,11 @@ sim.array <- function(size.array=20, numloci=10, selfing=0.5, het.error=0.8, hom
         kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), 
             p1=list(sim_focal[,1],sim_focal[,2]), het.error, hom.error, rec, imiss, misscode))
     #now setup observed kids
-    obs_kids=list()
-    for(i in 1:size.array){ obs_kids[[i]]=progeny[[i]][[2]] }
+    obs_kids <- true_kids <- list()
+    for(i in 1:size.array){ 
+        true_kids[[i]] <- progeny[[i]][[1]]
+        obs_kids[[i]] <- progeny[[i]][[2]] 
+    }
     
     ################################################################
     # 4th, now we impute the focal parent
@@ -80,13 +87,17 @@ sim.array <- function(size.array=20, numloci=10, selfing=0.5, het.error=0.8, hom
     #which parent is our focal one? Here we set to end of parents array for ease
     obs_parent=size.array+1 #focal parent
     #which parents are the other parent of each offspring. These are in order since we simulated them that way.
-    other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
+    #other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
+    
+    ped <- data.frame(kid=1:size.array, p1= size.array + 1, p2= c(1:outcrossed,rep(obs_parent,size.array-outcrossed) ))
     
     obj <- new("GBS.array",
+               true_parents = parent_array, # list of data.frame(hap1, hap2)
                gbs_parents = gbs_parents,
-               focal_parent = focal_parent,
-               other_parents = other_parents,
-               obs_kids = obs_kids)
+               true_kids = true_kids,
+               gbs_kids = obs_kids,
+               pedigree = ped
+               )
     return(obj)    
 }
 
@@ -95,7 +106,7 @@ sim.array <- function(size.array=20, numloci=10, selfing=0.5, het.error=0.8, hom
 #' @param p2 second parent (a list)
 #' @return a list of true [[1]] and observed [[2]] kid
 #'
-kid <- function(p1, p2, het.error, hom.error, rec=1.5, imiss=0, misscode=3){
+kid <- function(p1, p2, het.error, hom.error, rec, imiss, misscode){
     if(rec==0){
         k1=p1[[rbinom(1,1,.5)+1]]
         k2=p2[[rbinom(1,1,.5)+1]]

@@ -25,14 +25,18 @@ setClass("Geno4imputeR",
 #' @slot imiss individual plant missing rate
 #' 
 #' @exportClass Geno4imputeR
+#' 
 setClass("GBS.array",
-         slots=list(#filename="character",
-             gbs_parents = "matrix",
-             focal_parent = "data.frame",
-             other_parents = "data.frame",
-             obs_kids = ""
-             #ref="integer",
-             #alt="IntegerList",
-             #genotypes="matrix",
-             #samples="character",
-         ))
+         representation=representation(
+             true_parents = "list", # list of data.frame(hap1, hap2)
+             gbs_parents = "list",
+             true_kids = "list",
+             gbs_kids = "list",
+             pedigree = "data.frame"),             
+         prototype=prototype(
+             true_parents = list(), # list of data.frame(hap1, hap2)
+             gbs_parents = list(),
+             true_kids = list(),
+             gbs_kids = list(),
+             pedigree = data.frame())
+         )

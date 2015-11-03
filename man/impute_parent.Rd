@@ -8,8 +8,7 @@
 This function is to impute the parent's most likely genotype from a progeny array of k kids by
 giving a log likelihood threshold.}
 \usage{
-impute_parent(parents, obs_parent, other_parents, obs_kids, hom.error = 0.02,
-  het.error = 0.8, p = NULL)
+impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, p = NULL)
 
 impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
   other_parents, obs_kids)
@@ -17,7 +16,17 @@ impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
 parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 }
 \arguments{
-\item{parents}{A list of the genotypes of all possible parents, including current parent. These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles.
+\item{GBS.array}{A GBS.array object generated from create_GBS.array() or sim.array() functions.}
+
+\item{hom.error}{Homozygous error rate, default=0.02.}
+
+\item{het.error}{Heterozygous error rate, default=0.8.}
+
+\item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
+WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
+
+\item{parents}{A list of the genotypes of all possible parents, including current parent.
+These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
 
 \item{obs_parent}{An integer referring to which parent is the current parent of interest.}
@@ -27,13 +36,6 @@ Should be same length as number of kids (length(obs_kids))}
 
 \item{obs_kids}{A list of vectors of Kid's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles.
 Missing data should be coded with 3.}
-
-\item{hom.error}{Homozygous error rate, default=0.02.}
-
-\item{het.error}{Heterozygous error rate, default=0.8.}
-
-\item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
-WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
 
 \item{geno}{A table of genotype likelihoods from impute_parent}
 
@@ -61,5 +63,9 @@ return a data.frame with all the log likelihoods. Using function \code{parentgen
 We have observed parent and observed kids. We want to know the likelihood of the parent's possible genotypes.
 This function is to impute the parent's most likely genotype from a progeny array of k kids by
 giving a log likelihood threshold.
+}
+\examples{
+test <- sim.array(size.array=50, numloci=10)
+impute_parent(GBS.array=test)
 }
 
