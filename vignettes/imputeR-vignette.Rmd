@@ -47,6 +47,18 @@ Within "R" console, type `?impute_parent` or `help(impute_parent)` to find help 
 
 If we have parent's WGS data, this step can be skipped.
 
+We have observed mom and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of  mom's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
+
+$P(G|\theta) \propto P(\theta|G) \times P(G)$,   
+
+where $P(G)$ is the probability of the genotype according to the Hardy-Weinberg equilibrium estimated from the population.
+This consists of observed genotypes ($G'$) of both mom and kids. So:
+
+$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
+
+where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
+And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
+
 ## Example: step by step
 In the below toy example, we simulate a family of self and outcross progeny with 50 kids for 3 loci. We will assume 50% missing data, and 50% selfing rate. 
 
@@ -131,21 +143,30 @@ Now we impute the focal parent
     #which parents are the other parent of each offspring. These are in order since we simulated them that way.
     other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
 
-    #The stuff:
-    inferred_geno_likes=impute_parent(gbs_parents, obs_parent, other_parents, obs_kids, hom.error=0.02, het.error=0.8,p)
-    parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
 ```
 
-In the resulting table, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
 
 ## Simulation using `imputeR` package
 
-Above simulation steps were packed into a funcion `sim.array` and `impute_parent`. Now, you can do it in two steps.
+Above simulation steps were packed into a funcion `sim.array`. 
 ```{r}
 # find help
 ?sim.array
-test <- sim.array(size.array=50, numloci=10)
+test <- sim.array(size.array=50, numloci=100)
 ```
+
+Now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
+
+```{r}
+#The stuff:
+inferred_geno_likes <- impute_parent(test, hom.error=0.02, het.error=0.8)
+res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
+res$true_parent <- test@true_parents[[50]]$hap1 + test@true_parents[[50]]$hap2
+#error rates
+nrow(subset(res, gmax != true_parent ))/nrow(res)
+nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
+```
+
 
 
 
@@ -157,7 +178,8 @@ To load `hdf5` file, you need to install Vince's [tasselr](https://github.com/vs
 
 
 ```{r, eval=FALSE}
-# install devtools and then install the devlopmental version of tasselr and ProgenyArray using devtools. 
+# install devtools and then install the devlopmental version 
+# of tasselr and ProgenyArray using devtools. 
 devtools::install_github("hadley/devtools")
 library(devtools) 
 install_github("vsbuffalo/tasselr") 

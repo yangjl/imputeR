@@ -1,4 +1,5 @@
-#'
+#' \code{Impute Parent Genotype}
+#' 
 #' We have observed parent and observed kids. We want to know the likelihood of the parent's possible genotypes. 
 #' This function is to impute the parent's most likely genotype from a progeny array of k kids by 
 #' giving a log likelihood threshold.
