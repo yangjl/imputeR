@@ -19,7 +19,7 @@ library(imputeR)
 A vignette can be found [here](https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf).
 Documented functions are listed as below. Their usage information can be found by typing `?function_name` or `help(function_name)`.
 
- - impute_mom
+ - impute_parent
 
 
 ### Utils

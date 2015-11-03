@@ -30,15 +30,15 @@ return a data.frame with all the log likelihoods. Using function \code{momgeno} 
 }
 \description{
 Phasing mom's genotype can be conducted using confident genotyping data or
-using imputed  genotype data.
+using imputed genotype data.
 }
 \examples{
 obs_mom <- c(0, 0, 0)
 obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
 c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 
-impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
+impute_parent(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
 
-momgeno(geno, oddratio=0.5, returnall=FALSE)
+parentgeno(geno, oddratio=0.6931472, returnall=FALSE)
 }
 

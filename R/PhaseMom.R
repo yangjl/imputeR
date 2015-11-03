@@ -2,7 +2,7 @@
 #' \code{Phasing mom's genotype. } 
 #'
 #' Phasing mom's genotype can be conducted using confident genotyping data or 
-#' using imputed  genotype data.
+#' using imputed genotype data.
 #'
 #' @param obs_mom A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
@@ -22,9 +22,9 @@
 #' obs_kids <- list(c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0),
 #' c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0), c(0, 0, 0))
 #'
-#' impute_mom(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
+#' impute_parent(obs_mom, obs_kids, hom.error=0.02, het.error=0.8)
 #' 
-#' momgeno(geno, oddratio=0.5, returnall=FALSE)
+#' parentgeno(geno, oddratio=0.6931472, returnall=FALSE)
 #' 
 #' 
 
