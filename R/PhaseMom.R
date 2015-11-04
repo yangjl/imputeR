@@ -1,7 +1,7 @@
 #'
 #' \code{Phasing mom's genotype. } 
 #'
-#' Phasing mom's genotype can be conducted using confident genotyping data or 
+#' Phasing mom's genotype using confident genotyping data, for example, WGS data, or 
 #' using imputed genotype data.
 #'
 #' @param obs_mom A vector of mom's GBS data. Coded with 0, 1 and 2, which is the copy of alternative alleles. 

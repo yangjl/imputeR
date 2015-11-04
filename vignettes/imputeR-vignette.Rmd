@@ -251,13 +251,13 @@ abline(v=median(phase$er), col="darkblue", lwd=2)
 
 ----------
 
-# Phasing Dad of outcrossing progeny array  
-$P(H_d|\theta) \propto P(\theta|H_d) \times P(H_d)$   
-$P(H_d|\theta) \propto \left( \prod\limits_{i=1}^{k}{P(H'_k|H_d, H_m)} \right) \times P(H_m) \times P(H_d)$  
-$P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H)} \right) \times P(H)$
+# Phasing focal parent's haplotypes using parents and progeny genotype data 
+$P(H_1|\theta) \propto P(\theta|H_1) \times P(H_1)$   
+$P(H_1|\theta) \propto \left( \prod\limits_{i=1}^{k}{P(G'_k|H_1, H_2)} \right) \times P(H_1) \times P(H_2)$  
+$P(H_1|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_2)} \right) \times P(H_1) \times P(H_2)$
 
 - Where $\theta$ denotes observed data.
-- $P(H_d)$ is the probability of the dad's haplotype for a given window size of $n$.
+- $P(H_1)$ is the probability of our focal parent's haplotypes for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
 - The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
 
