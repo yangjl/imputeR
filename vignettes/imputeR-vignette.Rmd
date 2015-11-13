@@ -254,6 +254,43 @@ $$P(H_f|\theta) \propto  \sum_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_
 
 We implemented a function `PhaseParent` to carry out the phasing work.
 
+```{r}
+maxlog_hap_ockid <- function(dad_hap, mom_geno, kid_geno){
+    
+    ### all possible mom haplotypes based on mom's genotype
+    het_idx <- which(mom_geno==1)
+    if(length(het_idx) > 0){
+        haps1 <- setup_haps(win_length=length(het_idx))
+        haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
+        allhaps <- c(haps1, haps2)
+        mom_haps <- vector("list", 2^length(het_idx))
+        mom_haps <- lapply(1:length(mom_haps), function(x) {
+            temhap <- mom_geno/2
+            temhap[het_idx] <- allhaps[[x]]
+            return(temhap)})
+    }else{
+        mom_haps <- list(mom_geno/2)
+    }   
+    
+    ### all possible genotypes of a kid
+    allgeno1 <- lapply(1:length(mom_haps), function(x) dad_hap + mom_haps[[x]])
+    allgeno2 <- lapply(1:length(mom_haps), function(x) (1-dad_hap) + mom_haps[[x]])
+    allgenos <- c(allgeno1, allgeno2)
+    
+    ### return the possibility of the max genotype
+    geno_probs <- lapply(1:length(allgenos), function(geno){
+        sum( unlist(lapply(1:length(dad_hap), function(zz) {
+            #log(probs[[2]] is the log prob. of kid's obs geno 
+            #given the current phased geno and given dad is het. (which is why probs[[2]])
+            tem <- probs[[2]][[ mom_geno[zz]+1 ]][allgenos[[geno]][zz]+1, kid_geno[zz]+1]
+            return(log(tem))
+        })))   
+    })
+    return(max(unlist(geno_probs)))
+}
+
+```
+
 ## Simulation
 
 Above simulation steps were packed into a funcion `sim.array`. 
