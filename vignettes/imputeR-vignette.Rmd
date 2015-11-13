@@ -32,7 +32,7 @@ Install devtools first, and then use devtools to install imputeR from github.
 devtools::install_github("hadley/devtools")
 library(devtools)
 # install and load imputeR
-install_github("yangjl/imputeR",ref="outcross")
+install_github("yangjl/imputeR")
 library(imputeR)
 ```
 
@@ -42,6 +42,12 @@ Within "R" console, type `?impute_parent` or `help(impute_parent)` to find help 
 ```{r}
 ?impute_parent
 ```
+
+
+
+
+
+\newpage
 
 # Infer parent's genotype from GBS data
 
@@ -215,18 +221,71 @@ save(file="largedata/teo.RData", list="ob")
 
 Then, for each parent, run `impute_parent` as in the toy example above. Note that you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead (this is Very Bad).  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
 
-----------
 
 
-# Phasing Founder Genotypes  
-$P(H|\theta) \propto P(\theta|H) \times P(H)$   
-$P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}{P(H'_k|H)} \right) \times P(H)$  
-$P(H|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H)} \right) \times P(H)$
+
+\newpage
+
+# Phasing focal parent's haplotype 
+
+According to Bayes' theorem, we got:
+
+$$P(H_f|\theta) \propto P(\theta|H_f) \times P(H_f)$$  
 
 - Where $\theta$ denotes observed data.
-- $P(H)$ is the probability of the haplotype for a given window size of $n$.
-- $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
-- The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
+- $P(H_f)$ is the probability of our focal parent's haplotypes for a given window size of $n$.
+
+Our prior assumption for $P(H_f)$ is that all possible haplotypes are equally likely. So,
+
+$$P(H_f | \theta) \propto P(\theta | H_f)$$  
+
+We assume $H_i$ as the haplotype of the other parent for the $i$th kid. Because all possible haplotypes ($H_i$, p ranged from 1 to k) inherited from other parents constitute a partition of the sample space, which includes $k$ kids reproduced by the focal parent ($H_f$). The hapoltypes ($H_i$) are pairwise mutually exclusive. Therefore,
+
+$$P(H_f|\theta) \propto \sum_{i=1}^{k} P(\theta | H_f, H_i)$$
+
+It can be further expressed by:
+$$P(H_f|\theta) \propto \sum_{i=1}^{k} P(K'_i | H_f, H_i)$$ 
+
+$$P(H_f|\theta) \propto  \sum_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_2)} $$
+
+
+- $P(K'_i|H_f, H_i)$ is the probability of $i$th kid's haplotype given parents' haplotype of $H_f$ and $H_i$.
+- $P(G'_{i,l} | H_f, H_i)$ is the probability of $i$th kid's genotype at locus $l$ given parents' haplotype of $H_f$ and $H_i$.
+
+We implemented a function `PhaseParent` to carry out the phasing work.
+
+## Simulation
+
+Above simulation steps were packed into a funcion `sim.array`. 
+```{r}
+test <- sim.array(50, 100, hom.error = 0, het.error = 0, rec = 0.25, selfing = 0.5, imiss = 0.1, misscode = 3)
+
+
+
+
+
+
+```
+
+Now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
+
+```{r}
+#The stuff:
+inferred_geno_likes <- impute_parent(test, hom.error=0.02, het.error=0.8)
+res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
+res$true_parent <- test@true_parents[[50]]$hap1 + test@true_parents[[50]]$hap2
+#error rates
+nrow(subset(res, gmax != true_parent ))/nrow(res)
+nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
+```
+
+
+
+
+
+## Real Data
+
+
 
 
 ----------
@@ -249,17 +308,6 @@ abline(v=mean(phase$er), col="red", lwd=2)
 abline(v=median(phase$er), col="darkblue", lwd=2)
 ```
 
-----------
-
-# Phasing focal parent's haplotypes using parents and progeny genotype data 
-$P(H_1|\theta) \propto P(\theta|H_1) \times P(H_1)$   
-$P(H_1|\theta) \propto \left( \prod\limits_{i=1}^{k}{P(G'_k|H_1, H_2)} \right) \times P(H_1) \times P(H_2)$  
-$P(H_1|\theta) \propto \left( \prod\limits_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_2)} \right) \times P(H_1) \times P(H_2)$
-
-- Where $\theta$ denotes observed data.
-- $P(H_1)$ is the probability of our focal parent's haplotypes for a given window size of $n$.
-- $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
-- The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
 
 
 ----------

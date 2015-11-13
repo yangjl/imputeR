@@ -29,7 +29,7 @@ setClass("Geno4imputeR",
 setClass("GBS.array",
          representation=representation(
              true_parents = "list", # list of data.frame(hap1, hap2)
-             gbs_parents = "list",
+             gbs_parents = "list", # for phased parents, list of data.frame(chunk, hap1, hap2)
              true_kids = "list",
              gbs_kids = "list",
              pedigree = "data.frame"),             
