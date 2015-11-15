@@ -4,9 +4,7 @@
 \alias{impute_one_site}
 \alias{impute_parent}
 \alias{parentgeno}
-\title{We have observed parent and observed kids. We want to know the likelihood of the parent's possible genotypes.
-This function is to impute the parent's most likely genotype from a progeny array of k kids by
-giving a log likelihood threshold.}
+\title{\code{Impute Parent Genotype}}
 \usage{
 impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, p = NULL)
 
@@ -66,6 +64,7 @@ giving a log likelihood threshold.
 }
 \examples{
 test <- sim.array(size.array=50, numloci=10)
-impute_parent(GBS.array=test)
+res <- impute_parent(GBS.array=test)
+out <- parentgeno(res, oddratio=0.69, returnall=TRUE)
 }
 

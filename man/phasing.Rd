@@ -29,7 +29,7 @@ return a data.frame with all the log likelihoods. Using function \code{momgeno} 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
-Phasing mom's genotype can be conducted using confident genotyping data or
+Phasing mom's genotype using confident genotyping data, for example, WGS data, or
 using imputed genotype data.
 }
 \examples{
