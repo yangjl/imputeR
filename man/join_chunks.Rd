@@ -3,14 +3,11 @@
 \name{join_chunks}
 \alias{join_chunks}
 \alias{link_dad_haps}
-\alias{write_phase}
 \title{\code{Joining phased haplotype chunks. }}
 \usage{
 join_chunks(GBS.array, chunklist, join_length, verbose)
 
 link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length)
-
-write_phase(outchunks)
 }
 \arguments{
 \item{GBS.array}{A GBS.array object generated from \code{impute_parent} or\code{sim.array} functions.}

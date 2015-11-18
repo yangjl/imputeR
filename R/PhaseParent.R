@@ -10,9 +10,6 @@
 #' @param win_length Window length used for halotype phasing. Default=10. 
 #' win_length > 20 will dramatically increase computational burden. 
 #' @param join_length The length of each neighboring chunks used to connect them into a longer one.
-#' @param hom.error Homozygous error rate, default=0.02. Used for construction of error metrics.
-#' @param het.error Heterozygous error rate, default=0.8. Used for construction of error metrics.
-#' @param imiss Individual missing rate estimated for the progeny array. Default=0.2.
 #' @param verbose Writing verbose messages. Default=TRUE.
 #' 
 #' @return return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype. 
@@ -24,17 +21,8 @@
 #' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
 #' 
 #' 
-phase_parent <- function(GBS.array, win_length=10, join_length=10, 
-                         hom.error=0.02, het.error=0.8, imiss=0.2, verbose=TRUE){
-    
-    #dad_geno <- GBS.array@gbs_parents
-    #mom_array <- GBS.array@gbs_parents
-    #progeny <- GBS.array@gbs_kids
-    #ped <- GBS.array@pedigree
-    
-    ### get probability matrices
-    probs <- error_mx(hom.error, het.error, imiss)
-    
+phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE){
+
     #### phasing chunks
     if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
     haps <- setup_haps(win_length) 
@@ -71,6 +59,23 @@ write_phase <- function(outchunks){
         momdf <- rbind(momdf, tem)
     }
     return(momdf)
+}
+
+#' @rdname phase_parent
+phase_error_rate <- function(GBS.array, phase){
+    ped <- GBS.array@pedigree
+    if(length(unique(ped$p1)) != 1){
+        stop("### more than one focal parent!!!")
+    }
+    pidx <- unique(ped$p1)
+    
+    true_p <- GBS.array@true_parents[[pidx]]
+    p <- subset(true_p, hap1 != hap2)
+    out <- merge(res, p, by.x="idx", by.y="row.names")
+    idx <- which.max(c(cor(out$hap1.x, out$hap1.y), cor(out$hap1.x, out$hap2.y)))
+    er <- sum(out$hap1.x != out[,4+idx])/nrow(out)
+    message(sprintf("###>>> phasing error rate [ %s ] for [ %s ] heterozygote sites.", 
+                    round(er,3), nrow(out)))
 }
 
 #' 
