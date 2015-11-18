@@ -302,11 +302,3 @@ checkphasing <- function(newmom, sim){
     return(data.frame(piece=length(newmom), diff=diff, tot=tot))
 }
 
-write_mom <- function(newmom){
-    momdf <- data.frame()
-    for(i in 1:length(newmom)){
-        tem <- data.frame(chunk=i, idx=newmom[[i]][[3]], hap1=newmom[[i]][[1]], hap2=newmom[[i]][[2]])
-        momdf <- rbind(momdf, tem)
-    }
-    return(momdf)
-}

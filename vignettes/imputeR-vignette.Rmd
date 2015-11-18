@@ -306,21 +306,33 @@ test <- sim.array(50, 100, hom.error = 0, het.error = 0, rec = 0.25, selfing = 0
 
 Now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
 
-```{r, eval=FALSE}
-#The stuff:
-inferred_geno_likes <- impute_parent(test, hom.error=0.02, het.error=0.8)
-res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
-res$true_parent <- test@true_parents[[50]]$hap1 + test@true_parents[[50]]$hap2
-#error rates
-nrow(subset(res, gmax != true_parent ))/nrow(res)
-nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
-```
-
-
 
 
 
 ## Real Data
+
+
+```{r, eval=FALSE}
+# to make the random events repeatable
+set.seed(1234)
+
+### get probability matrices
+probs <- error_mx(hom.error=0.02, het.error=0.1, imiss=0.2)
+# simulate a GBS.array object
+GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5, het.error=0.1)
+# set up all possiable halpotypes
+win_length =10
+haps <- setup_haps(win_length) 
+chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
+if(length(chunklist) > 1){
+    outchunks <- join_chunks(GBS.array, chunklist, join_length, verbose=TRUE)
+}else{
+    outchunks <- chunklist
+}
+# write as a data.frame
+df <- write_phase(outchunks)
+
+```
 
 
 
