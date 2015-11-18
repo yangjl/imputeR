@@ -142,12 +142,14 @@ What is our focal parent's real genotype:
 ```
 
 
-Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, then next `size.array - outcrossed` are just the focal parent.
+Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, 
+then next `size.array - outcrossed` are just the focal parent.
 ```{r}
     #first outcrossed
     outcrossed=rbinom(n=1,prob=(1-selfing),size=size.array)
     out_parents <- vector("list", outcrossed)
-    out_parents <- lapply(1:outcrossed, function(i) data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
+    out_parents <- lapply(1:outcrossed, function(i) 
+        data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
     #now selfed
     self_parents <- vector("list", size.array-outcrossed)
     self_parents <- lapply(1:(size.array-outcrossed), function(i) sim_focal )
@@ -160,7 +162,8 @@ Now we make our set of parents for each of our progeny. The first `outcrossed` p
         parent_array=c(out_parents,self_parents)
     }
 
-    #now we make their diploid genotypes, we add the focal parent on to the end of the parents array
+    #now we make their diploid genotypes, 
+    #we add the focal parent on to the end of the parents array
     parents<-lapply(parent_array, function(q) q[,1]+q[,2]  )
     parents[[size.array+1]]=c(sim_focal[,1]+sim_focal[,2])
     #finally, add error to make some crappy gbs_parents
@@ -172,7 +175,10 @@ Now we make a progeny array for these parents.
     progeny <- vector("list", size.array)
     #use the kid function!
     #each entry in progeny list has two vectors. [[1]] is true genotype, [[2]] is observed
-    progeny <- lapply(1:size.array, function(a) kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), p1=list(sim_focal[,1],sim_focal[,2]), het.error, hom.error, rec, imiss, misscode))
+    progeny <- lapply(1:size.array, function(a) 
+        kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), 
+            p1=list(sim_focal[,1],sim_focal[,2]), 
+            het.error, hom.error, rec, imiss, misscode))
     
     #now setup observed kids
     obs_kids=list()
@@ -183,7 +189,8 @@ Now we impute the focal parent
 ```{r}
     #which parent is our focal one? Here we set to end of parents array for ease
     obs_parent=size.array+1 #focal parent
-    #which parents are the other parent of each offspring. These are in order since we simulated them that way.
+    #which parents are the other parent of each offspring. 
+    #These are in order since we simulated them that way.
     other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
 
 ```
@@ -191,7 +198,8 @@ Now we impute the focal parent
 
 ## Simulation using `imputeR` package
 
-Above simulation steps were packed into a funcion `sim.array`. This function will simulate a `GBS.array` object for the following functions to use.
+Above simulation steps were packed into a funcion `sim.array`. 
+This function will simulate a `GBS.array` object for the following functions to use.
 
 ```{r}
 # find help
@@ -261,7 +269,7 @@ $$P(H_f|\theta) \propto  \sum_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_
 We implemented a function `phase_parent` to do the phasing work. It was conducted in two steps by two major functions `phase_chunk` and `join_chunks`. First, we get the most likely focal parent's haplotype in a window. We then extend the window by one bp each time into a larger chromosomal chunk until the new haplotype in a window conflict with the existing chunk. In the conflict case, a new chromosomal chunk will be created. Second, we compute the possibilities of the haplotypes of two neighboring chunks. The most likely joined haplotype chunks will be returned by the function `join_chunks`.
 
 
-```{r, eval=TRUE}
+```{r, eval=FALSE}
 # to make the random events repeatable
 set.seed(123457)
 # simulate a GBS.array object
@@ -283,7 +291,7 @@ out <- phase_error_rate(GBS.array, phase)
 
 \newpage
 
-# Imputing and Phasing Kids  
+# Phasing and Imputing Kids  
 $P(H_k|\theta) \propto P(\theta|H_k) \times P(H_k)$   
 $P(H_k|\theta) \propto \left( \prod\limits_{i=k}{P(H'_k|H_k)} \right) \times P(H_k)$  
 $P(H_k|\theta) \propto \left( \prod\limits_{i=k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_k)} \right) \times P(H_k)$
@@ -293,14 +301,28 @@ $P(H_k|\theta) \propto \left( \prod\limits_{i=k}\prod\limits_{l=1}^{n}{P(G'_{i,l
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
 - The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
 
-```{r, eval=FALSE}
-phase <- read.csv("../data/sim_phasing_res.csv")
+![alt text](impute_kid.png)
 
-hist(phase$er, breaks=30, main="Simulation (N=100)",col="#faebd7", xlab="Phasing Error Rate")
-abline(v=mean(phase$er), col="red", lwd=2)
-abline(v=median(phase$er), col="darkblue", lwd=2)
+1. We calculate the maximum likelihood of the inherited haplotypes for a given window.
+2. We find hte munimum path of recombinations.
+3. At the potential recombination sites, we will find the maximum likelihood of the breaking points.
+
+## Simulated data
+```{r, eval=FALSE}
+# to make the random events repeatable
+set.seed(123457)
+# simulate a GBS.array object
+GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error = 0.8,
+                       rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
+# get phased parents
+GBS.array <- get_phased(GBS.array, maxchunk=3)
+# get probability matrices
+probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
+# phasing   
+phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=FALSE)
+ 
+# compute error rate
+out <- phase_error_rate(GBS.array, phase)
 ```
 
 
-
-----------

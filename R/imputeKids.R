@@ -1,66 +1,189 @@
-
-##############################
-imputing <- function(momphase, progeny, winstart, winend, stepsize, expect_recomb=1.5, verbose){
+#' \code{Phasing and Imputing Kid Genotypes}
+#'
+#' Calculate the maximum likelihood of the inherited haplotypes. And then find the minimum path of recombinations.
+#' At the potential recombination sites, find the maximum likelihood of the breaking points.
+#'
+#' @param GBS.array A GBS.array object with phased parents. 
+#' It can be generated from \code{phase_parent} or\code{sim.array} functions.
+#' @param win_length Window length used for halotype phasing. Default=10. 
+#' win_length > 20 will dramatically increase computational burden. 
+#' @param join_length The length of each neighboring chunks used to connect them into a longer one.
+#' @param verbose Writing verbose messages. Default=TRUE.
+#' 
+#' @return return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype. 
+#'   
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+#'   
+#' @examples
+#' 
+#' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
+#' 
+#' 
+impute_kid <- function(GBS.array, winstart=10, winend=500, stepsize=10, recomb=1.5, verbose=TRUE){
     
-    for(k in 1:length(progeny)){
-        kid <- progeny[[k]][[2]]
+    ped <- GBS.array@pedigree
+    progeny <- GBS.array@gbs_kids
+    phasedp <- GBS.array@gbs_parents
+    
+    for(k in 1:nrow(ped)){
+        kid <- progeny[[ped$kid[k]]]
+        p1 <- phasedp[[ped$p1[k]]]
+        p2 <- phasedp[[ped$p2[k]]]
+        
+        if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", k )) }
+        win <- optimal_win(p1, p2, kid, winstart, winend, stepsize, recomb)
+        if(verbose){ message(sprintf("###>>> optimal win length [ %s ] SNPs, diff1=%s, diff2=%s ...", 
+                                     win$win_length, win$bp1, win$bp2)) }
+        
         kidgeno <- data.frame()
-        
-        if(verbose){ message(sprintf("###>>> start to imputekid [ %s ] with [ %s ] chunks ...", 
-                                     k, length(unique(momphase$chunk)) )) }
-        win <- optimal_win(momphase, kid, winstart, winend, stepsize, expect_recomb)
-        if(verbose){ message(sprintf("###>>> optimal win length [ %s ] SNPs, diff1=%s, diff2=%s ...", win$win_length, win$bp1, win$bp2)) }
-        
         kidgeno <- impute_onekid(momphase, kid, win_length=win$win_length, verbose=FALSE)
         progeny[[k]][[3]] <- kidgeno
     }
     return(progeny)
 }
 
-######################################################
-impute_onekid <- function(momphase, kid, win_length, verbose){
-    
-    res <- data.frame()
-    for(c in unique(momphase$chunk)){
-        ### find the best haps in a chunk
-        mychunk <- hap_in_chunk(momphase, c, win_length, kid)
-        #### find the min path of recombinations: it is already minimum path not necessary to run the following
-        #mychunk <- min_path(mychunk, verbose)
-        
-        ### refine break point
-        mychunk <- refine_brk_point(mychunk, win_length, verbose, kid)[[1]]
-        #mychunk <- out[[1]]
-        res <- rbind(res, mychunk)
-    }
-    return(res)
-}
-optimal_win <- function(momphase, kid, winstart, winend, stepsize, expect_recomb){
+#' \code{Maximum likelihood of the inherited haplotypes}
+#' 
+#' Determining the optimal window size by searching from winstart to winend.
+#' And then calculate the maximum likelihood of the inherited haplotypes in the determined window size. 
+#'
+#' @param GBS.array A GBS.array object with phased parents. 
+#' It can be generated from \code{phase_parent} or\code{sim.array} functions.
+#' 
+#' @param winstart The min window size for the heterozygote sites of the two parents.
+#' @param winend The max window size for the heterozygote sites of the two parents.
+#' @param stepsize The step size.
+#'  
+#' @param join_length The length of each neighboring chunks used to connect them into a longer one.
+#' @param verbose Writing verbose messages. Default=TRUE.
+#' 
+#' @return return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype. 
+#'   
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+#'   
+#' @examples
+#' 
+#' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
+#' 
+#' 
+optimal_win <- function(p1, p2, kid, winstart, winend, stepsize, recomb){
     bps <- data.frame()
-    
     for(win_length in seq(from=winstart, to=winend, by=stepsize)){
         
         tem <- data.frame(win_length=winstart, bp1=0, bp2=0)
-        for(c in unique(momphase$chunk)){
-        ### find the best haps in a chunk
+        
+        
+        ###???
+        for(c in unique(p1$chunk)){
+            ### find the best haps in a chunk
             mychunk <- hap_in_chunk(momphase, c, win_length, kid)
-            #### find the min path of recombinations: it is already minimum path not necessary to run the following
-            #mychunk <- min_path(mychunk, verbose)
             
             ### refine break point
             out <- refine_brk_point(mychunk, win_length, verbose=FALSE, kid)
             #mychunk <- out[[1]]
-            tem <- data.frame(win_length=win_length, bp1= tem$bp1+ length(out[[2]][[1]]), bp2= tem$bp2+ length(out[[2]][[2]]))
+            tem <- data.frame(win_length=win_length, bp1= tem$bp1+ length(out[[2]][[1]]), 
+                              bp2= tem$bp2+ length(out[[2]][[2]]))
         }
         bps <- rbind(bps, tem)
-           
+        
     }
-    bps$bp1 <- abs(bps$bp1 - expect_recomb)
-    bps$bp2 <- abs(bps$bp2 - expect_recomb)
+    bps$bp1 <- abs(bps$bp1 - recomb)
+    bps$bp2 <- abs(bps$bp2 - recomb)
     idx <- which.min(bps$bp1+bps$bp2)
     return(bps[idx,])
 }
 
+#' @rdname optimal_win
+hap_in_chunk <- function(p1, p2, c, win_length, kid){
+    mychunk <- subset(p1, chunk == c)
+    
+    #winstart <- i <- 1
+    ### kids haplotypes by window
+    mychunk$k1 <- 3
+    mychunk$k2 <- 3
+    
+    ## need to determine the het site based on p1 and p2
+    ## and then get all possible haps of p2
+    
+    
+    
+    
+    ##???
+    if()
+    
+    if(win_length >= nrow(mychunk)){
+        
+        
+        
+        #myidx <- mychunk$idx
+        haplotype <- mychunk$hap1
+        
+        
+        ###???
+        khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=kid[mychunk$idx])
+        #mychunk <- copy_phase(haplotype, mychunk, khaps, idx=1:nrow(mychunk))
+    }else{
+        for(win in 1:floor(nrow(mychunk)/win_length) ){
+            
+            myidx <- ((win-1)*win_length+1) : (win*win_length)
+            haplotype <- mychunk$hap1[myidx]
+            khaps <- which_kid_hap(haplotype, kidwin=kid[mychunk$idx[myidx]])
+            #mychunk <- copy_phase(haplotype, mychunk, khaps, idx=myidx)
+        }
+        ##### calculate last window
+        myidx <- (nrow(mychunk)-win_length+1) : nrow(mychunk)
+        haplotype <- mychunk$hap1[myidx]
+        khaps <- which_kid_hap(haplotype, kidwin=kid[mychunk$idx[myidx]])
+        #mychunk <- copy_phase(haplotype, mychunk, khaps, idx=myidx)    
+    }
+    mychunk$k1 <- khaps[[1]]
+    mychunk$k2 <- khaps[[2]]
+    return(mychunk)
+}
 
+# give this mom haplotype and a kid's diploid genotype over the window and returns maximum prob
+# Mendel is takenh care of in the probs[[]] matrix already
+#  chunk idx hap1 hap2
+#1     1   2    1    0
+#2     1  19    1    0
+#3     1  20    0    1
+#4     1  21    0    1
+#5     1  24    1    0
+#6     1  28    0    1
+#' @rdname optimal_win
+which_kid_hap <- function(p1_haps, p2_haps, kidwin){
+    genotypes=list()
+    #haplotype=unlist(haplotype)
+    tab <- data.frame()
+    p <- 0
+    for(i in 1:length(p1_haps)){
+        for(j in 1:length(p2_haps)){
+            p <- p +1
+            tem <- data.frame(idx1=i, idx2=j, tot=p)
+            tab <- rbind(tab, tem)
+            genotypes[[p]] <- p1_haps[[i]] + p2_haps[[j]]
+        }
+    }
+    
+    geno_probs=as.numeric() #prob of each of three genotypes
+    for(geno in 1:p){
+        #log(probs[[2]][three_genotypes,kidwin] is the log prob. of kid's obs geno 
+        #given the current phased geno and given mom is het. (which is why probs[[2]])
+        idx1 <- p1_haps[[tab$idx1[geno]]]
+        idx2 <- p2_haps[[tab$idx2[geno]]]
+        geno_probs[geno]=sum( sapply(1:length(p1_haps[[1]]), function(zz) 
+            log( probs[[idx1+1]][[idx2+1]] [genotypes[[geno]][zz]+1, kidwin[zz]+1])))
+    }
+    
+    maxidx <- which.max(geno_probs)
+    return(list(p1_haps[[tab$idx1[maxidx]]], p2_haps[[tab$idx2[maxidx]]]))
+}
+
+
+
+
+
+#' @rdname optimal_win
 refine_brk_point <- function(mychunk, win_length, verbose, kid){
     
     bpoints <- get_break_point(mychunk)
@@ -77,6 +200,50 @@ refine_brk_point <- function(mychunk, win_length, verbose, kid){
     
     return(list(mychunk, bpoints))
 }
+
+
+
+
+
+#' \code{Impute kid genotypes}
+#'
+#' Calculate the maximum likelihood of the inherited haplotypes. 
+#'
+#' @param GBS.array A GBS.array object with phased parents. 
+#' It can be generated from \code{phase_parent} or\code{sim.array} functions.
+#' @param win_length Window length used for halotype phasing. Default=10. 
+#' win_length > 20 will dramatically increase computational burden. 
+#' @param join_length The length of each neighboring chunks used to connect them into a longer one.
+#' @param verbose Writing verbose messages. Default=TRUE.
+#' 
+#' @return return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype. 
+#'   
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+#'   
+#' @examples
+#' 
+#' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
+#' 
+#' 
+impute_onekid <- function(momphase, kid, win_length, verbose){
+    
+    res <- data.frame()
+    for(c in unique(momphase$chunk)){
+        ### find the best haps in a chunk
+        mychunk <- hap_in_chunk(momphase, c, win_length, kid)
+        #### find the min path of recombinations: it is already minimum path not necessary to run the following
+        #mychunk <- min_path(mychunk, verbose)
+        
+        ### refine break point
+        mychunk <- refine_brk_point(mychunk, win_length, verbose, kid)[[1]]
+        #mychunk <- out[[1]]
+        res <- rbind(res, mychunk)
+    }
+    return(res)
+}
+
+
+
 
 get_break_point <- function(mychunk){
     mychunk$r1 <- 0
@@ -152,80 +319,9 @@ which_fine_hap <- function(hap0, fixhap, genok){
 
 
 ######################################################
-hap_in_chunk <- function(momphase, c, win_length, kid){
-    mychunk <- subset(momphase, chunk == c)
-    
-    #winstart <- i <- 1
-    ### kids haplotypes by window
-    mychunk$k1 <- 3
-    mychunk$k2 <- 3
-    if(win_length >= nrow(mychunk)){
-        #myidx <- mychunk$idx
-        haplotype <- mychunk$hap1
-        khaps <- which_kid_hap(haplotype, kidwin=kid[mychunk$idx])
-        mychunk <- copy_phase(haplotype, mychunk, khaps, idx=1:nrow(mychunk))
-    }else{
-        for(win in 1:floor(nrow(mychunk)/win_length) ){
-            
-            myidx <- ((win-1)*win_length+1) : (win*win_length)
-            haplotype <- mychunk$hap1[myidx]
-            khaps <- which_kid_hap(haplotype, kidwin=kid[mychunk$idx[myidx]])
-            mychunk <- copy_phase(haplotype, mychunk, khaps, idx=myidx)
-        }
-        ##### calculate last window
-        myidx <- (nrow(mychunk)-win_length+1) : nrow(mychunk)
-        haplotype <- mychunk$hap1[myidx]
-        khaps <- which_kid_hap(haplotype, kidwin=kid[mychunk$idx[myidx]])
-        mychunk <- copy_phase(haplotype, mychunk, khaps, idx=myidx)    
-    }
-    return(mychunk)
-}
-copy_phase <- function(haplotype, mychunk, khaps, idx){
-    if(is.null(khaps)){
-        mychunk$k1[idx] <- 3
-        mychunk$k2[idx] <- 3
-    }else if(khaps == 1){
-        mychunk$k1[idx] <- haplotype
-        mychunk$k2[idx] <- haplotype
-    }else if(khaps == 2){
-        mychunk$k1[idx] <- haplotype
-        mychunk$k2[idx] <- 1-haplotype
-    }else if(khaps == 3){
-        mychunk$k1[idx] <- 1-haplotype
-        mychunk$k2[idx] <- 1-haplotype
-    }else{
-        stop("###!!! error! Unexpected haplotype value!")
-    }
-    return(mychunk)
-}
 
-# give this mom haplotype and a kid's diploid genotype over the window and returns maximum prob
-# Mendel is takenh care of in the probs[[]] matrix already
-#  chunk idx hap1 hap2
-#1     1   2    1    0
-#2     1  19    1    0
-#3     1  20    0    1
-#4     1  21    0    1
-#5     1  24    1    0
-#6     1  28    0    1
-which_kid_hap <- function(haplotype, kidwin){
-    three_genotypes=list()
-    #haplotype=unlist(haplotype)
-    three_genotypes[[1]]=haplotype+haplotype
-    three_genotypes[[2]]=haplotype+(1-haplotype)
-    three_genotypes[[3]]=(1-haplotype)+(1-haplotype)
-    geno_probs=as.numeric() #prob of each of three genotypes
-    for(geno in 1:3){
-        #log(probs[[2]][three_genotypes,kidwin] is the log prob. of kid's obs geno 
-        #given the current phased geno and given mom is het. (which is why probs[[2]])
-        geno_probs[geno]=sum( sapply(1:length(haplotype), function(zz) log( probs[[2]][three_genotypes[[geno]][zz]+1,kidwin[zz]+1])))
-    }
-    if(length(which(geno_probs==max(geno_probs)))==1){
-        return(which.max(geno_probs))
-    }else{
-        return(which.max(geno_probs))
-    }
-}
+
+
 
 ###############################################################
 min_path <- function(mychunk, verbose){

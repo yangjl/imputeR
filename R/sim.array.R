@@ -191,6 +191,12 @@ missing.idx <- function(nloci, imiss){
     return(ml)
 }
 
+#' \code{Method for GBS.array} 
+#'
+#' Simulate imputed parents. All the gbs_parents are true genotypes.
+#' 
+#' @param GBS.array Input a GBS.array object.
+#' 
 get_true_GBS <- function(GBS.array){
     
     ped <- GBS.array@pedigree
@@ -201,6 +207,31 @@ get_true_GBS <- function(GBS.array){
     for(pidx in 1:length(GBS.array@true_parents)){
         true_p <- GBS.array@true_parents[[pidx]]
         GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2 
+    }
+    return(GBS.array)
+}
+
+#' \code{Method for GBS.array} 
+#'
+#' Simulate phased parents. All the gbs_parents are perfectly phased.
+#' 
+#' @param GBS.array Input a GBS.array object.
+#' @param maxchunk The max number of chunks.
+#' 
+get_phased <- function(GBS.array, maxchunk){
+    
+    ped <- GBS.array@pedigree
+    if(length(unique(ped$p1)) != 1){
+        stop("### more than one focal parent!!!")
+    }
+    
+    for(pidx in 1:length(GBS.array@true_parents)){
+        true_p <- GBS.array@true_parents[[pidx]]
+        c <- sample(1:maxchunk, 1)
+        idx <- sample(1:c, nrow(true_p), replace=TRUE)
+        true_p$chunk <- sort(idx)
+        true_p$idx <- 1:nrow(true_p)
+        GBS.array@gbs_parents[[pidx]] <- true_p 
     }
     return(GBS.array)
 }
