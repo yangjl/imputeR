@@ -62,6 +62,17 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10,
     return(out)
 }
 
+#' @rdname phase_parent
+write_phase <- function(outchunks){
+    momdf <- data.frame()
+    for(i in 1:length(outchunks)){
+        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], 
+                          hap1=outchunks[[i]][[1]], hap2=outchunks[[i]][[2]])
+        momdf <- rbind(momdf, tem)
+    }
+    return(momdf)
+}
+
 #' 
 #' \code{Phasing haplotype chunks. } 
 #'
@@ -404,13 +415,3 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
     }
 }
 
-#' @rdname join_chunks
-write_phase <- function(outchunks){
-    momdf <- data.frame()
-    for(i in 1:length(outchunks)){
-        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], 
-                          hap1=outchunks[[i]][[1]], hap2=outchunks[[i]][[2]])
-        momdf <- rbind(momdf, tem)
-    }
-    return(momdf)
-}
