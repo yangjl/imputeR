@@ -198,8 +198,9 @@ get_true_GBS <- function(GBS.array){
         stop("### more than one focal parent!!!")
     }
     
-    pidx <- unique(ped$p1)
-    true_p <- GBS.array@true_parents[[pidx]]
-    GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2
+    for(pidx in 1:length(GBS.array@true_parents)){
+        true_p <- GBS.array@true_parents[[pidx]]
+        GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2 
+    }
     return(GBS.array)
 }

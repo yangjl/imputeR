@@ -34,7 +34,7 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
         out <- join_chunks(GBS.array, chunklist, verbose, join_length)
         if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
                                      length(chunklist), length(out))) } 
-        haplist <- out
+        chunklist <- out
     }else{
         if(verbose){ message(sprintf("###>>> Only one chunk in total!")) } 
     }
@@ -71,11 +71,12 @@ phase_error_rate <- function(GBS.array, phase){
     
     true_p <- GBS.array@true_parents[[pidx]]
     p <- subset(true_p, hap1 != hap2)
-    out <- merge(res, p, by.x="idx", by.y="row.names")
+    out <- merge(phase, p, by.x="idx", by.y="row.names")
     idx <- which.max(c(cor(out$hap1.x, out$hap1.y), cor(out$hap1.x, out$hap2.y)))
     er <- sum(out$hap1.x != out[,4+idx])/nrow(out)
     message(sprintf("###>>> phasing error rate [ %s ] for [ %s ] heterozygote sites.", 
                     round(er,3), nrow(out)))
+    return(out)
 }
 
 #' 
@@ -355,14 +356,15 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
         newchunk <- chunklist[[chunki]]
         hapidx <- c(oldchunk[3], newchunk[3])
         #dad_haps <- list(c(oldchunk[[1]], newchunk[[1]]), c(oldchunk[[1]], newchunk[[2]]))
-        dad_haps_lofl <- list(list(oldchunk[[1]], newchunk[[1]]), list(oldchunk[[1]], newchunk[[2]]))
+        dad_haps_lofl <- list(list(oldchunk[[1]], newchunk[[1]]), 
+                              list(oldchunk[[1]], newchunk[[2]]))
         
         ## link previous and current chunks
         temhap <- link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length)
         temhap <- c(temhap[[1]], temhap[[2]])
         if(!is.null(temhap)){
             outold <- outhaplist[[i]][[1]]
-            outoldchunk <- outold[ (length(outold)-length(oldchunk[[1]])+1):length(outold)]
+            outoldchunk <- outold[(length(outold)-length(oldchunk[[1]])+1):length(outold)]
             outnewchunk <- temhap[(length(oldchunk[[1]])+1):length(temhap)]
             
             same <- sum(outoldchunk == temhap[1:length(oldchunk[[1]])])
@@ -402,7 +404,7 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
     if(length(hapidx[[2]]) > join_length ){
         downidx <- 1:join_length
     }else{
-        upidx <- 1:length(hapidx[[2]])
+        downidx <- 1:length(hapidx[[2]])
     }
     
     ### get phase probs for each dad_haps

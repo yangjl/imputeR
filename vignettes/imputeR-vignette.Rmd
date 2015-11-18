@@ -263,7 +263,7 @@ We implemented a function `phase_parent` to do the phasing work. It was conducte
 
 ```{r, eval=TRUE}
 # to make the random events repeatable
-set.seed(1234)
+set.seed(123457)
 # simulate a GBS.array object
 GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error = 0.8,
                        rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
@@ -272,10 +272,10 @@ GBS.array <- get_true_GBS(GBS.array)
 # get probability matrices
 probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
 # phasing   
-res <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=FALSE)
+phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=FALSE)
  
 # compute error rate
-phase_error_rate(GBS.array, phase=res)
+out <- phase_error_rate(GBS.array, phase)
 ```
 
 ## Real data
