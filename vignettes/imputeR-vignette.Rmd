@@ -36,14 +36,51 @@ install_github("yangjl/imputeR")
 library(imputeR)
 ```
 
-## How to find help.
+## How to find help
 Within "R" console, type `?impute_parent` or `help(impute_parent)` to find help information about the function.
 
 ```{r}
 ?impute_parent
 ```
 
+## How to load hdf5 file
+To load `hdf5` file, you need to install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. If you fail to install them, please follow the above links and install the required dependencies. 
 
+
+```{r, eval=FALSE}
+# install devtools and then install the devlopmental version 
+# of tasselr and ProgenyArray using devtools. 
+devtools::install_github("hadley/devtools")
+library(devtools) 
+install_github("vsbuffalo/tasselr") 
+install_github("vsbuffalo/ProgenyArray")
+install_github("yangjl/imputeR")
+```
+
+Load the required packages. Note you have to specify the locations of the packages if they were not in your searching path.
+```{r, eval=FALSE}
+# load packages
+library(parallel)
+library(devtools)
+options(mc.cores=NULL)
+# you need to specify the location where the packages were installed. 
+load_all("~/bin/tasselr")
+load_all("~/bin/ProgenyArray")
+load_all("~/Documents/Github/imputeR")
+```
+
+The following several lines help you to reformat the `*.h5` HDF5 file into an R object. You need to specify the path of the HDF5 file.
+
+```{r, eval=FALSE}
+# Note: at least 100G memory will be needed to load the hdf5 file
+# load h5file
+teo <- initTasselHDF5("largedata/teo.h5", version="5")
+teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
+# reformat to imputeR object
+source("R/load_data.R")
+ob <- imputeRob(teo)
+save(file="largedata/teo.RData", list="ob")  
+```
 
 
 
@@ -154,20 +191,24 @@ Now we impute the focal parent
 
 ## Simulation using `imputeR` package
 
-Above simulation steps were packed into a funcion `sim.array`. 
+Above simulation steps were packed into a funcion `sim.array`. This function will simulate a `GBS.array` object for the following functions to use.
+
 ```{r}
 # find help
 ?sim.array
-test <- sim.array(size.array=50, numloci=100)
+# make the simulation repeatable
+set.seed(1234)
+GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error = 0.8,
+  rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
 ```
 
-Now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
+We now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
 
-```{r, eval=FALSE}
+```{r, eval=TRUE}
 #The stuff:
-inferred_geno_likes <- impute_parent(test, hom.error=0.02, het.error=0.8, imiss=0.5)
+inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5)
 res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
-res$true_parent <- test@true_parents[[50]]$hap1 + test@true_parents[[50]]$hap2
+res$true_parent <- GBS.array@true_parents[[50]]$hap1 + GBS.array@true_parents[[50]]$hap2
 #error rates
 nrow(subset(res, gmax != true_parent ))/nrow(res)
 nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
@@ -180,43 +221,6 @@ nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
 ## Real Data
 
 
-To load `hdf5` file, you need to install Vince's [tasselr](https://github.com/vsbuffalo/tasselr) and [ProgenyArray](https://github.com/vsbuffalo/ProgenyArray) packages. If you fail to install them, please follow the above links and install the required dependencies. 
-
-
-```{r, eval=FALSE}
-# install devtools and then install the devlopmental version 
-# of tasselr and ProgenyArray using devtools. 
-devtools::install_github("hadley/devtools")
-library(devtools) 
-install_github("vsbuffalo/tasselr") 
-install_github("vsbuffalo/ProgenyArray")
-install_github("yangjl/imputeR")
-```
-
-Load the required packages. Note you have to specify the locations of the packages if they were not in your searching path.
-```{r, eval=FALSE}
-# load packages
-library(parallel)
-library(devtools)
-options(mc.cores=NULL)
-# you need to specify the location where the packages were installed. 
-load_all("~/bin/tasselr")
-load_all("~/bin/ProgenyArray")
-load_all("~/Documents/Github/imputeR")
-```
-
-The following several lines help you to reformat the `*.h5` HDF5 file into an R object. You need to specify the path of the HDF5 file.
-
-```{r, eval=FALSE}
-# Note: at least 100G memory will be needed to load the hdf5 file
-# load h5file
-teo <- initTasselHDF5("largedata/teo.h5", version="5")
-teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
-# reformat to imputeR object
-source("R/load_data.R")
-ob <- imputeRob(teo)
-save(file="largedata/teo.RData", list="ob")  
-```
 
 
 Then, for each parent, run `impute_parent` as in the toy example above. Note that you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead (this is Very Bad).  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
@@ -252,92 +256,29 @@ $$P(H_f|\theta) \propto  \sum_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_
 - $P(K'_i|H_f, H_i)$ is the probability of $i$th kid's haplotype given parents' haplotype of $H_f$ and $H_i$.
 - $P(G'_{i,l} | H_f, H_i)$ is the probability of $i$th kid's genotype at locus $l$ given parents' haplotype of $H_f$ and $H_i$.
 
-We implemented a function `PhaseParent` to carry out the phasing work.
-
-```{r}
-maxlog_hap_ockid <- function(dad_hap, mom_geno, kid_geno){
-    
-    ### all possible mom haplotypes based on mom's genotype
-    het_idx <- which(mom_geno==1)
-    if(length(het_idx) > 0){
-        haps1 <- setup_haps(win_length=length(het_idx))
-        haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
-        allhaps <- c(haps1, haps2)
-        mom_haps <- vector("list", 2^length(het_idx))
-        mom_haps <- lapply(1:length(mom_haps), function(x) {
-            temhap <- mom_geno/2
-            temhap[het_idx] <- allhaps[[x]]
-            return(temhap)})
-    }else{
-        mom_haps <- list(mom_geno/2)
-    }   
-    
-    ### all possible genotypes of a kid
-    allgeno1 <- lapply(1:length(mom_haps), function(x) dad_hap + mom_haps[[x]])
-    allgeno2 <- lapply(1:length(mom_haps), function(x) (1-dad_hap) + mom_haps[[x]])
-    allgenos <- c(allgeno1, allgeno2)
-    
-    ### return the possibility of the max genotype
-    geno_probs <- lapply(1:length(allgenos), function(geno){
-        sum( unlist(lapply(1:length(dad_hap), function(zz) {
-            #log(probs[[2]] is the log prob. of kid's obs geno 
-            #given the current phased geno and given dad is het. (which is why probs[[2]])
-            tem <- probs[[2]][[ mom_geno[zz]+1 ]][allgenos[[geno]][zz]+1, kid_geno[zz]+1]
-            return(log(tem))
-        })))   
-    })
-    return(max(unlist(geno_probs)))
-}
-
-```
-
-## Simulation
-
-Above simulation steps were packed into a funcion `sim.array`. 
-```{r}
-test <- sim.array(50, 100, hom.error = 0, het.error = 0, rec = 0.25, selfing = 0.5, imiss = 0.1, misscode = 3)
-
-
-
-
-
-
-```
-
-Now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
-
-
-
-
 ## Real Data
+
+We implemented a function `phase_parent` to do the phasing work. It was conducted in two steps by two major functions `phase_chunk` and `join_chunks`. First, we get the most likely focal parent's haplotype in a window. We then extend the window by one bp each time into a larger chromosomal chunk until the new haplotype in a window conflict with the existing chunk. In the conflict case, a new chromosomal chunk will be created. Second, we compute the possibilities of the haplotypes of two neighboring chunks. The most likely joined haplotype chunks will be returned by the function `join_chunks`.
 
 
 ```{r, eval=FALSE}
 # to make the random events repeatable
 set.seed(1234)
 
-### get probability matrices
-probs <- error_mx(hom.error=0.02, het.error=0.1, imiss=0.2)
 # simulate a GBS.array object
-GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5, het.error=0.1)
-# set up all possiable halpotypes
-win_length =10
-haps <- setup_haps(win_length) 
-chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
-if(length(chunklist) > 1){
-    outchunks <- join_chunks(GBS.array, chunklist, join_length, verbose=TRUE)
-}else{
-    outchunks <- chunklist
-}
-# write as a data.frame
-df <- write_phase(outchunks)
-
+GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error = 0.8,
+                       rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
+# get perfect parent genotype
+GBS.array <- get_true_GBS(GBS.array)
+res <- phase_parent(GBS.array, win_length=10, join_length=10, 
+                    hom.error=0.02, het.error=0.8, imiss=0.5, verbose=TRUE)
+  
 ```
 
 
 
 
-----------
+\newpage
 
 # Imputing and Phasing Kids  
 $P(H_k|\theta) \propto P(\theta|H_k) \times P(H_k)$   

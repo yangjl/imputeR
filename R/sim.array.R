@@ -26,9 +26,9 @@
 #' test <- sim.array(size.array=50, numloci=10)
 #' class(test)
 #' 
-### JRI: http://rpubs.com/rossibarra/self_impute
-sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.25, selfing=0.5, imiss=0.5, misscode=3){
-
+sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.25, 
+                      selfing=0.5, imiss=0.5, misscode=3){
+    ### JRI: http://rpubs.com/rossibarra/self_impute
     #############################
     # 1st, make our focal parent
     #############################
@@ -39,14 +39,14 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     # make focal parent using a data.frame
     sim_focal <- data.frame(hap1=ran.hap(numloci, p), hap2=ran.hap(numloci, p))
     
-    
     ################################################################
     # 2nd, get parent array including selfed and outcrossed parents
     ################################################################
     # get a list of outcrossed parents
     outcrossed <- rbinom(n=1, prob=(1-selfing), size=size.array)
     out_parents <- vector("list", outcrossed)
-    out_parents <- lapply(1:outcrossed, function(i) data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
+    out_parents <- lapply(1:outcrossed, function(i) 
+        data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
     # now selfed
     self_parents <- vector("list", size.array - outcrossed)
     self_parents <- lapply(1:(size.array-outcrossed), function(i) sim_focal )
@@ -58,13 +58,13 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     }else{
         parent_array=c(out_parents,self_parents)
     }
-    #now we make their diploid genotypes, we add the focal parent on to the end of the parents array
-    parents <- lapply(parent_array, function(q) q[,1]+q[,2]  )
-    parents[[size.array+1]] <- c(sim_focal[,1]+sim_focal[,2])
+    #now we make their diploid genotypes, we add the focal parent on to 
+    #the end of the parents array
+    parents <- lapply(parent_array, function(q) q[,1]+q[,2])
+    parents[[size.array+1]] <- c(sim_focal[,1] + sim_focal[,2])
     #finally, add error to make some crappy gbs_parents
     gbs_parents <- lapply(parents, function(a) add_error(a,hom.error,het.error))
-    
-    
+    parent_array[[size.array+1]] <- sim_focal
     ################################################################
     # 3rd, make a progeny array for these parents
     ################################################################
@@ -89,7 +89,8 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     #which parents are the other parent of each offspring. These are in order since we simulated them that way.
     #other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
     
-    ped <- data.frame(kid=1:size.array, p1= size.array + 1, p2= c(1:outcrossed,rep(obs_parent,size.array-outcrossed) ))
+    ped <- data.frame(kid=1:size.array, p1= size.array + 1, 
+                      p2= c(1:outcrossed,rep(obs_parent,size.array-outcrossed) ))
     
     obj <- new("GBS.array",
                true_parents = parent_array, # list of data.frame(hap1, hap2)
@@ -126,9 +127,7 @@ kid <- function(p1, p2, het.error, hom.error, rec, imiss, misscode){
     return(list(true_kid, obs_kid))
 }
 
-#' @rdname sim.array
-#' Create random haplotype with sfs
-#'  
+#' @rdname sim.array  
 #' @param numloci number of loci.
 #' @param p a vector of allele freq with length numloci.
 #' @return a vector of genotype,
@@ -139,9 +138,7 @@ ran.hap <- function(numloci,p){
     sapply(1:numloci,function(x) rbinom(1,1,p[x]))
 }
 
-#' @rdname sim.array
-#' Add error to diploid
-#'  
+#' @rdname sim.array  
 #' @param diploid a vector of diploid genotype, for example, c(0, 1, 1, 0, 2, 2).
 #' @param hom.error homozygous error rate.
 #' @param het.error heterozygous error rate.
@@ -161,13 +158,11 @@ add_error <- function(diploid,hom.error,het.error){
 }
 
 #' @rdname sim.array
-#' Copy mom to kids with recombination
 #' @param mom a list of mom's haplotype.
 #' @param co_mean mean number of crossovers per chromosome.
 #' @return a vector of diploid genotype.
 #' @examples
 #' copy.mom(list(c(0, 1, 1, 0, 1, 1)), 0.25)
-#'
 copy.mom <- function(mom, co_mean){ 
     co=rpois(1,co_mean) #crossovers
     numloci=length(mom[[1]])
@@ -184,7 +179,6 @@ copy.mom <- function(mom, co_mean){
 }
 
 #' @rdname sim.array
-#' add missing
 missing.idx <- function(nloci, imiss){
     #hist(rbeta(10000, 2, 2))
     if(imiss >= 1){
@@ -197,3 +191,15 @@ missing.idx <- function(nloci, imiss){
     return(ml)
 }
 
+get_true_GBS <- function(GBS.array){
+    
+    ped <- GBS.array@pedigree
+    if(length(unique(ped$p1)) != 1){
+        stop("### more than one focal parent!!!")
+    }
+    
+    pidx <- unique(ped$p1)
+    true_p <- GBS.array@true_parents[[pidx]]
+    GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2
+    return(GBS.array)
+}

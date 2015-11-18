@@ -9,6 +9,7 @@
 #' @param parents A list of the genotypes of all possible parents, including current parent. 
 #' These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles. 
 #' Missing data should be coded with 3.
+#' @param imiss Individual missing rate. It used for the error matrices.
 #' @param obs_parent An integer referring to which parent is the current parent of interest.
 #' @param other_parents A vector of integers referring to which are the second parent of each kid. 
 #' Should be same length as number of kids (length(obs_kids))
@@ -31,7 +32,7 @@
 #' res <- impute_parent(GBS.array=test)
 #' out <- parentgeno(res, oddratio=0.69, returnall=TRUE)
 #'
-impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, p=NULL){
+impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p=NULL){
         
     ### need to check genotypes
     numloci <- length(GBS.array@gbs_parents[[1]])
@@ -41,8 +42,8 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, p=NULL){
     message(sprintf("###>>> Of [ %s ] kids, [ %s ] are outcrossed and [ %s ] are selfed", nrow(ped),
                     nrow(subset(ped, p1!=p2)), nrow(subset(ped, p1==p2))))
     ### get probability matrices
-    gen_error <- gen_error_mat(hom.error, het.error)
-    probs <- error_mx(hom.error, het.error)
+    gen_error <- gen_error_mat(hom.error, het.error, imiss)
+    probs <- error_mx(hom.error, het.error, imiss)
     
     ### make sfs if not provided?
     if(is.null(p)){

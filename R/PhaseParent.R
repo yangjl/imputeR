@@ -63,7 +63,7 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10,
 }
 
 #' 
-#' \code{Phasing Parent's haplotype chunks. } 
+#' \code{Phasing haplotype chunks. } 
 #'
 #' Phasing Parent's haplotypes using sliding window. 
 #' These sliding windows were merged into a chunk if there is no conflict. Otherwise, they will be
@@ -193,8 +193,8 @@ infer_dip <- function(GBS.array, winidx, haps, returnhap=FALSE){
     } 
 }
 
+# log likelyhood of one focal parent's hap x all other haps for all kids
 #' @rdname phase_chunk
-#' log likelyhood of one focal parent's hap x all other haps for all kids
 sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
     
     ped <- GBS.array@pedigree
@@ -252,12 +252,11 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
 } 
 
 #' @rdname phase_chunk
-#' Find most likely phase of the dad for a kid at a window, return that probability
-#' give this dad haplotype, mom genotype (thus all possible haplotypes) 
-#' and a kid's diploid genotype over the window and returns maximum prob
-#' Mendel is taken care of in the probs[[]] matrix already. 
 maxlog_hap_ockid <- function(dad_hap, mom_geno, mom_haps, kid_geno){
-    
+    # Find most likely phase of the dad for a kid at a window, return that probability
+    # give this dad haplotype, mom genotype (thus all possible haplotypes) 
+    # and a kid's diploid genotype over the window and returns maximum prob
+    # Mendel is taken care of in the probs[[]] matrix already. 
     ### all possible genotypes of a kid
     allgeno1 <- lapply(1:length(mom_haps), function(x) dad_hap + mom_haps[[x]])
     allgeno2 <- lapply(1:length(mom_haps), function(x) (1-dad_hap) + mom_haps[[x]])

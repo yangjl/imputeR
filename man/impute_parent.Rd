@@ -6,7 +6,8 @@
 \alias{parentgeno}
 \title{\code{Impute Parent Genotype}}
 \usage{
-impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, p = NULL)
+impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, imiss = 0.5,
+  p = NULL)
 
 impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
   other_parents, obs_kids)
@@ -19,6 +20,8 @@ parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 \item{hom.error}{Homozygous error rate, default=0.02.}
 
 \item{het.error}{Heterozygous error rate, default=0.8.}
+
+\item{imiss}{Individual missing rate. It used for the error matrices.}
 
 \item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
 WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
