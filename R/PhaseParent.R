@@ -225,22 +225,8 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
         if(!is.null(nrow(mymom))){ #phased mom
             temmom <- mymom[winidx, ]
             mom_geno <- temmom$hap1 + temmom$hap2
-            if(length(unique(temmom$chunk))==1){
-                mom_haps <- list(mymom[winidx, ]$hap1, mymom[winidx, ]$hap2)
-            }else{
-                haps1 <- setup_haps(length(unique(temmom$chunk)))
-                haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
-                allhaps <- c(haps1, haps2)
-                mom_haps <- lapply(1:length(allhaps), function(x){
-                    
-                    temout <- c()
-                    k = 1
-                    for(c in unique(temmom$chunk)){
-                        temout <- c(temout, temmom[temmom$chunk==c, allhaps[[x]][k]+1])
-                        k <- k+1
-                    }
-                    return(temout)    
-                })}    
+            mom_haps <- setup_mom_haps(temmom)
+   
         }else{ #unphased mom
             mom_geno <- mymom[winidx]
             het_idx <- which(mom_geno==1)
@@ -267,6 +253,24 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
     })
     return(sum(unlist(maxlog1)) + sum(unlist(maxlog2)))
 } 
+
+#' @rdname phase_chunk
+#' @param temmom Must be a data.frame(hap1, hap2, chunk, idx)
+setup_mom_haps <- function(temmom){
+    haps1 <- setup_haps(length(unique(temmom$chunk)))
+    haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
+    allhaps <- c(haps1, haps2)
+    mom_haps <- lapply(1:length(allhaps), function(x){
+        temout <- c()
+        k = 1
+        for(c in unique(temmom$chunk)){
+            temout <- c(temout, temmom[temmom$chunk==c, allhaps[[x]][k]+1])
+            k <- k+1
+        }
+        return(temout)    
+    })
+    return(mom_haps)
+}
 
 #' @rdname phase_chunk
 maxlog_hap_ockid <- function(dad_hap, mom_geno, mom_haps, kid_geno){

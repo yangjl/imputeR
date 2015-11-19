@@ -6,6 +6,7 @@
 \alias{maxlog_hap_ockid}
 \alias{maxlog_hap_selfed_kid}
 \alias{phase_chunk}
+\alias{setup_mom_haps}
 \alias{sum_max_log_1hap}
 \title{\code{Phasing haplotype chunks. }}
 \usage{
@@ -14,6 +15,8 @@ phase_chunk(GBS.array, win_length, haps, verbose)
 infer_dip(GBS.array, winidx, haps, returnhap = FALSE)
 
 sum_max_log_1hap(GBS.array, winidx, dad_hap = haps[[a]])
+
+setup_mom_haps(temmom)
 
 maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno)
 
@@ -30,6 +33,8 @@ Missing data should be coded with 3.}
 \item{haps}{all possible haplotypes (2^(win_length-1)) for a given window length.}
 
 \item{verbose}{Writing verbose messages. Default=TRUE.}
+
+\item{temmom}{Must be a data.frame(hap1, hap2, chunk, idx)}
 }
 \value{
 return A list of haplotype chunks.
