@@ -7,7 +7,7 @@
 \alias{which_kid_hap}
 \title{\code{Phasing and Imputing Kid Genotypes}}
 \usage{
-impute_kid(GBS.array, winsize = 10, verbose = TRUE)
+impute_kid(GBS.array, winsize = 100, verbose = TRUE)
 
 chr_hap(GBS.array, ped, k, winsize)
 
@@ -19,21 +19,18 @@ which_kid_hap(haplotype, kidwin)
 \item{GBS.array}{A GBS.array object with phased parents.
 It can be generated from \code{phase_parent} or\code{sim.array} functions.}
 
+\item{winsize}{The size of window for determining kid haplotype. Default=100.}
+
 \item{verbose}{Writing verbose messages. Default=TRUE.}
 
-\item{win_length}{Window length used for halotype phasing. Default=10.
-win_length > 20 will dramatically increase computational burden.}
-
 \item{kidwin}{The genotypes of the kid for all heterozygote site of both parents.}
-
-\item{join_length}{The length of each neighboring chunks used to connect them into a longer one.}
 
 \item{p1_haps}{Two haplotypes in a chunk of the first parent.}
 
 \item{p2_haps}{All possible haplotypes in chunks of the 2nd parent.}
 }
 \value{
-return a data.frame with all the log likelihoods. Using function \code{momgeno} to extract mom's genotype.
+return GBS.array object with kid hapltoypes in slot \code{gbs_kids}.
 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
@@ -42,6 +39,13 @@ Calculate the maximum likelihood of the inherited haplotypes. And then find the 
 At the potential recombination sites, find the maximum likelihood of the breaking points.
 }
 \examples{
-GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
+set.seed(123457)
+GBS.array <- sim.array(size.array=50, numloci=10000, hom.error = 0.02, het.error = 0.8,
+                       rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
+#get perfectly phased parents
+GBS.array <- get_phased(GBS.array, maxchunk=3)
+#get probability matrices
+probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
+phased <- impute_kid(GBS.array, winsize=10, verbose=TRUE)
 }
 
