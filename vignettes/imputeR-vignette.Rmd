@@ -312,9 +312,9 @@ $P(H_k|\theta) \propto \left( \prod\limits_{i=k}\prod\limits_{l=1}^{n}{P(G'_{i,l
 # to make the random events repeatable
 set.seed(123457)
 # simulate a GBS.array object
-GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error = 0.8,
+GBS.array <- sim.array(size.array=50, numloci=10000, hom.error = 0.02, het.error = 0.8,
                        rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
-# get phased parents
+# get perfectly phased parents
 GBS.array <- get_phased(GBS.array, maxchunk=3)
 # get probability matrices
 probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
@@ -322,7 +322,9 @@ probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
 phase <- impute_kid(GBS.array, winsize=10, verbose=TRUE)
  
 # compute error rate
-out <- phase_error_rate(GBS.array, phase)
+g1 <- phase@gbs_kids[[1]]$hap1 + phase@gbs_kids[[1]]$hap2
+g2 <- phase@true_kids[[1]]
+sum(g1!=g2)/length(g1)
 ```
 
 

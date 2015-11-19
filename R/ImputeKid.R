@@ -21,20 +21,19 @@
 #' 
 impute_kid <- function(GBS.array, winsize=10, verbose=TRUE){
     
+    ped <- GBS.array@pedigree
     for(k in 1:nrow(ped)){
         if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", k )) }
         
-        kidhap <- chr_hap(GBS.array, k, winsize)
-        
-        ped <- GBS.array@pedigree
+        kidhap <- chr_hap(GBS.array, ped, k, winsize)
         GBS.array@gbs_kids[[ped$kid[k]]] <- kidhap
     }
-    return(GBS,array)
+    return(GBS.array)
 }
 
 #' @rdname impute_kid
-chr_hap <- function(GBS.array, k, winsize){
-    ped <- GBS.array@pedigree
+chr_hap <- function(GBS.array, ped, k, winsize){
+    
     phasedp <- GBS.array@gbs_parents
     kid <- GBS.array@gbs_kids[[ped$kid[k]]]
     p1 <- phasedp[[ped$p1[k]]]
