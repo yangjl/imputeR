@@ -1,12 +1,13 @@
 #'
 #' \code{Create imputeR object. } 
 #'
-#' A method for TasselHDF5 object. Recode it into `0, 1, 2, 3` format. 
+#' A method for TasselHDF5 object. Recode it into `0, 1, 2` format. 
 #' 
 #' In the genotype file, `0, 1, 2` indicate the copy of alternative allele;
-#' `3` indicate missing data. This function also calculate individual and locus missing rate.
+#' Missingcode (default=`3`) indicates missing data. This function also calculate individual and locus missing rate.
 #' 
-#' @param inpob A S4 method for TasselHDF5 object.
+#' @param h5 TasselHDF5 object.
+#' @param missingcode The code for missing data point. Default=3.
 #' @return return "Geno4imputeR" object with three slots: "genomx", "info", "imiss". 
 #' "genomx", genotype matrix. 
 #' "info", loci information, including SNP ID (snpid), chr, position (pos), 
@@ -17,9 +18,13 @@
 #'   
 #' @examples
 #' # note this function requires at least 100G memeory to load teo.h5 file.
-#' obj <- loading_hdf5(h5file="largedata/teo.h5")
+#' teo <- initTasselHDF5("largedata/teo.h5", version="5")
+#' teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
+#'  #reformat to imputeR object
+#' ob1 <- imputeRob(h5=teo, missingcode=3)
 #' 
-imputeRob <-  function(teo, missingcode=3){
+imputeRob <-  function(h5, missingcode=3){
+    teo <- h5
     pos <- as.data.frame(granges(teo))
     alt <- sapply(teo@alt, function(x) TASSELL_ALLELES[x+1L])
     info <- data.frame(snpid=rownames(geno(teo)), ref=ref(teo), alt=alt)

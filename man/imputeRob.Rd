@@ -2,12 +2,14 @@
 % Please edit documentation in R/load_data.R
 \name{imputeRob}
 \alias{imputeRob}
-\title{\code{Create TasselHDF5 object. }}
+\title{\code{Create imputeR object. }}
 \usage{
-imputeRob(teo)
+imputeRob(h5, missingcode = 3)
 }
 \arguments{
-\item{inpob}{A S4 method for TasselHDF5 object.}
+\item{h5}{TasselHDF5 object.}
+
+\item{missingcode}{The code for missing data point. Default=3.}
 }
 \value{
 return "Geno4imputeR" object with three slots: "genomx", "info", "imiss".
@@ -19,12 +21,17 @@ loci missing rate (lmiss), minor allele freq (maf).
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 }
 \description{
-S4 method for TasselHDF5 object. Recode it into `0, 1, 2, 3` format.
-In the genotype file, `0, 1, 2` indicate the copy of alternative allele,
-`3` indicate missing data. This function also calculate individual and locus missing rate.
+A method for TasselHDF5 object. Recode it into `0, 1, 2` format.
+}
+\details{
+In the genotype file, `0, 1, 2` indicate the copy of alternative allele;
+Missingcode (default=`3`) indicates missing data. This function also calculate individual and locus missing rate.
 }
 \examples{
 # note this function requires at least 100G memeory to load teo.h5 file.
-obj <- loading_hdf5(h5file="largedata/teo.h5")
+teo <- initTasselHDF5("largedata/teo.h5", version="5")
+teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
+ #reformat to imputeR object
+ob1 <- imputeRob(h5=teo, missingcode=3)
 }
 
