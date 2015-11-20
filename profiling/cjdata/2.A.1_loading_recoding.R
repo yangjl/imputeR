@@ -1,20 +1,8 @@
 # Jinliang Yang
 # Oct. 29, 2015
 
-# install packages
-#devtools::install_github("hadley/devtools")
-#library(devtools) 
-#install_github("vsbuffalo/tasselr") 
-#install_github("vsbuffalo/ProgenyArray")
-
-
-# load packages
-library(parallel)
-library(devtools)
-options(mc.cores=NULL)
-# you need to specify the location where the packages were installed. 
-load_all("~/bin/tasselr")
-load_all("~/Documents/Github/imputeR")
+library("tasselr")
+library("imputeR")
 
 # Note: at least 100G memory was needed to load the hdf5 file
 # load h5file
@@ -22,6 +10,10 @@ teod <- initTasselHDF5("largedata/teo.h5", version="5")
 teod <- loadBiallelicGenotypes(teod, verbose = TRUE)
 
 # reformat to imputeR object
-source("R/my-TasselHDF5-method.R")
-ob <- imputeRob(teod)
+ob <- imputeRob(h5=teod, missingcode=3)
 save(file="largedata/teo.RData", list="ob")
+
+#calculating missing rates ... done.
+#calculating minor allele frq (MAF) ... done.
+#calculating reference allele frq (RAF) ... done.
+#preparing Geno4imputeR object for [4875] plants and [598043] SNPs ... 

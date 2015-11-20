@@ -71,7 +71,7 @@ imputeRob <-  function(h5, missingcode=3){
     genos[is.na(genos)] <- missingcode
     info <- merge(info, lmiss, by.x="snpid", by.y="row.names")
     info <- merge(info, maf, by.x="snpid", by.y="row.names")
-    raf <- data.frame(ref)
+    raf <- data.frame(raf)
     info <- merge(info, raf, by.x="snpid", by.y="row.names")
         
     info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf", "ref")]

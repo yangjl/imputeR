@@ -59,11 +59,13 @@ missing.idx(nloci, imiss)
 }
 \value{
 Return GBS.array object.
+
 Slot1: true_parents, a list of data.frame(hap1, hap2).
 Slot2: gbs_parents, a list of genotypes. For example, c(1, 2, 2, 0, 3).
 Slot3: true_kids, a list of data.frame(hap1, hap2).
 Slot4: gbs_kids, a list of kid genotypes. For example, c(1, 1, 3, 1, 2).
 Slot5: pedigree, a data.frame (kid, p1, p2). Note, p1 is the focal parent.
+Slot6: freq, a vector of reference allele freq for all SNPs.
 
   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 
