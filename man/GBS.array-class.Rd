@@ -3,17 +3,22 @@
 \docType{class}
 \name{GBS.array-class}
 \alias{GBS.array-class}
-\title{An S4 class that stores links to Geno4imputeR objects, genotypes, loci missing rate, and MAF}
+\title{A S4 class stores genomic data.}
 \description{
-An S4 class that stores links to Geno4imputeR objects, genotypes, loci missing rate, and MAF
+Stores GBS data of progeny array and parental data, as well as pedigree information.
+In the GBS data, 0 ref, 1 het, 2 alt and 3 missing.
 }
 \section{Slots}{
 
 \describe{
-\item{\code{genomx}}{a matrix of bialleic genotypes, 0 ref, 1 het, 2 alt and 3 missing}
+\item{\code{true_parents}}{List of parents' read data. List index must consistent with pedigree.}
 
-\item{\code{info}}{SNP information, including SNP ID, chr, position, ref and alt alleles, loci missing rate.}
+\item{\code{gbs_parents}}{List of parents' GBS data.}
 
-\item{\code{imiss}}{individual plant missing rate}
+\item{\code{true_kids}}{List of progeny's readl data.}
+
+\item{\code{gbs_kids}}{List of progeny's GBS data.}
+
+\item{\code{pedigree}}{Pedigree information.}
 }}
 
