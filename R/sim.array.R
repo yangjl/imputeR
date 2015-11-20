@@ -14,11 +14,13 @@
 #' @param misscode Missing code, default=3.
 #' 
 #' @return Return GBS.array object. 
+#' 
 #' Slot1: true_parents, a list of data.frame(hap1, hap2).
 #' Slot2: gbs_parents, a list of genotypes. For example, c(1, 2, 2, 0, 3).
 #' Slot3: true_kids, a list of data.frame(hap1, hap2).
 #' Slot4: gbs_kids, a list of kid genotypes. For example, c(1, 1, 3, 1, 2).
 #' Slot5: pedigree, a data.frame (kid, p1, p2). Note, p1 is the focal parent.
+#' Slot6: freq, a vector of reference allele freq for all SNPs.
 #' 
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #'   
@@ -35,6 +37,7 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     # make neutral SFS
     sfs <- getsfs()
     # get sample of allele freqs from SFS
+    # p= frequency of 1.
     p <- sample(sfs, numloci,replace=TRUE)
     # make focal parent using a data.frame
     sim_focal <- data.frame(hap1=ran.hap(numloci, p), hap2=ran.hap(numloci, p))
@@ -97,7 +100,8 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
                gbs_parents = gbs_parents,
                true_kids = true_kids,
                gbs_kids = obs_kids,
-               pedigree = ped
+               pedigree = ped,
+               freq = p
                )
     return(obj)    
 }
@@ -191,47 +195,3 @@ missing.idx <- function(nloci, imiss){
     return(ml)
 }
 
-#' \code{Method for GBS.array} 
-#'
-#' Simulate imputed parents. All the gbs_parents are true genotypes.
-#' 
-#' @param GBS.array Input a GBS.array object.
-#' 
-get_true_GBS <- function(GBS.array){
-    
-    ped <- GBS.array@pedigree
-    if(length(unique(ped$p1)) != 1){
-        stop("### more than one focal parent!!!")
-    }
-    
-    for(pidx in 1:length(GBS.array@true_parents)){
-        true_p <- GBS.array@true_parents[[pidx]]
-        GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2 
-    }
-    return(GBS.array)
-}
-
-#' \code{Method for GBS.array} 
-#'
-#' Simulate phased parents. All the gbs_parents are perfectly phased.
-#' 
-#' @param GBS.array Input a GBS.array object.
-#' @param maxchunk The max number of chunks.
-#' 
-get_phased <- function(GBS.array, maxchunk){
-    
-    ped <- GBS.array@pedigree
-    if(length(unique(ped$p1)) != 1){
-        stop("### more than one focal parent!!!")
-    }
-    
-    for(pidx in 1:length(GBS.array@true_parents)){
-        true_p <- GBS.array@true_parents[[pidx]]
-        c <- sample(1:maxchunk, 1)
-        idx <- sample(1:c, nrow(true_p), replace=TRUE)
-        true_p$chunk <- sort(idx)
-        true_p$idx <- 1:nrow(true_p)
-        GBS.array@gbs_parents[[pidx]] <- true_p 
-    }
-    return(GBS.array)
-}

@@ -1,7 +1,7 @@
 Package: imputeR
 Type: Package
 Title: Imputation of GBS genotypes via window phasing
-Version: 0.2.0.9000
+Version: 0.2.0.9001
 Date: 2015-11-14
 Authors@R: 'Jinliang Yang <yangjl0930@gmail.com> [aut, cre]'
 Description: ImputeR infer the most likely genotypes from raw GBS genotyping data, which normally have high missing rate and high rate rate for heterozygote sites.

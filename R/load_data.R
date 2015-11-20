@@ -34,7 +34,7 @@ imputeRob <-  function(h5, missingcode=3){
     genos <- geno(teo)
     
     ### calculate missing rates
-    message("calculating missing rates ...", appendLF=FALSE)
+    message("calculating missing rates ... ", appendLF=FALSE)
     imiss <- apply(genos, 2, function(x) return(sum(is.na(x))/nrow(genos)))
     imiss <- data.frame(imiss)
     
@@ -43,7 +43,7 @@ imputeRob <-  function(h5, missingcode=3){
     message("done.")
     
     ### calculate maf
-    message("calculating minor allele frq (MAF) ...", appendLF=FALSE)
+    message("calculating minor allele frq (MAF) ... ", appendLF=FALSE)
     maf <- apply(genos, 1, function(x){
         x <- x[!is.na(x)]
         c0 <- sum(x == 0)
@@ -53,20 +53,34 @@ imputeRob <-  function(h5, missingcode=3){
     })
     message("done.")
     
+    ### calculate maf
+    message("calculating reference allele frq (RAF) ... ", appendLF=FALSE)
+    raf <- apply(genos, 1, function(x){
+        x <- x[!is.na(x)]
+        c0 <- sum(x == 0)
+        c1 <- sum(x == 1)
+        c2 <- sum(x == 2)
+        return((2*c0 + c1)/2*(c0 + c1 + c2))
+    })
+    message("done.")
+    
     ### turn missing data "NA" into 3 and return the results
-    message(sprintf("preparing Geno4imputeR object for [%s] plants and [%s] SNPs ...", 
+    message(sprintf("preparing Geno4imputeR object for [%s] plants and [%s] SNPs ... ", 
                     ncol(genos), nrow(genos)))
     maf <- data.frame(maf)
     genos[is.na(genos)] <- missingcode
     info <- merge(info, lmiss, by.x="snpid", by.y="row.names")
     info <- merge(info, maf, by.x="snpid", by.y="row.names")
-    info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf")]
+    raf <- data.frame(ref)
+    info <- merge(info, raf, by.x="snpid", by.y="row.names")
+        
+    info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf", "ref")]
     names(info)[1:3] <- c("snpid", "chr", "pos")
     
     obj <- new("Geno4imputeR",
                genomx = genos,
                info = info,
-               imiss=imiss)
+               imiss= imiss)
     message("ALL DONE.")
     return(obj)
 }
@@ -85,5 +99,5 @@ imputeRob <-  function(h5, missingcode=3){
 # N = 0xF
 # Each of these has a position in a vector with length 16. Since R is
 # 1-indexed, the appoprtiate allele is the bit value in decimal - 1.
-TASSELL_ALLELES <- c("A", "C", "G", "T", "+", "-", NA, NA,
-                     NA, NA, NA, NA, NA, NA, NA, "N")
+#TASSELL_ALLELES <- c("A", "C", "G", "T", "+", "-", NA, NA,
+#                     NA, NA, NA, NA, NA, NA, NA, "N")

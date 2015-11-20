@@ -67,7 +67,7 @@ Here is the Teosinte data:
 teo <- initTasselHDF5("largedata/teo.h5", version="5")
 teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
 # reformat to imputeR object
-source("R/load_data.R")
+# find help with ??imputeRob
 ob1 <- imputeRob(h5=teo, missingcode=3)
 save(file="largedata/teo.RData", list="ob1")  
 ```
@@ -78,9 +78,7 @@ Here is the landrace data:
 # load h5file
 land <- initTasselHDF5("largedata/maize_landrace.h5", version="5")
 land <- loadBiallelicGenotypes(land, verbose = TRUE)
-
 # reformat to imputeR object
-source("R/load_data.R")
 ob2 <- imputeRob(h5=land, missingcode=3)
 save(file="largedata/bode_data.RData", list="ob2")
 ```
@@ -101,7 +99,7 @@ This consists of observed genotypes ($G'$) of both mom and kids. So:
 $P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
 
 where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
-And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_mom` was implemented to compute mom's genotype probabilities.
+And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_parent` was implemented to compute mom's genotype probabilities.
 
 ## Example: step by step
 In the below toy example, we simulate a family of self and outcross progeny with 50 kids for 3 loci. We will assume 50% missing data, and 50% selfing rate. 
