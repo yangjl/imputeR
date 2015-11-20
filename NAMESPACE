@@ -1,1 +1,2 @@
 exportPattern("^[[:alpha:]]+")
+importMethodsFrom(GenomicRanges, as.data.frame)
