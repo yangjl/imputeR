@@ -6,12 +6,12 @@ library("imputeR")
 
 # Note: at least 100G memory was needed to load the hdf5 file
 # load h5file
-teod <- initTasselHDF5("largedata/teo.h5", version="5")
-teod <- loadBiallelicGenotypes(teod, verbose = TRUE)
+teo <- initTasselHDF5("largedata/teo.h5", version="5")
+teo <- loadBiallelicGenotypes(teo, verbose = TRUE)
 
 # reformat to imputeR object
-ob <- imputeRob(h5=teod, missingcode=3)
-save(file="largedata/teo.RData", list="ob")
+ob1 <- imputeRob(h5=teo, missingcode=3)
+save(file="largedata/teo.RData", list="ob1")
 
 #calculating missing rates ... done.
 #calculating minor allele frq (MAF) ... done.

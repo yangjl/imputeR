@@ -74,7 +74,7 @@ imputeRob <-  function(h5, missingcode=3){
     raf <- data.frame(raf)
     info <- merge(info, raf, by.x="snpid", by.y="row.names")
         
-    info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf", "ref")]
+    info <- info[, c("snpid", "seqnames", "start", "ref", "alt", "lmiss", "maf", "raf")]
     names(info)[1:3] <- c("snpid", "chr", "pos")
     
     obj <- new("Geno4imputeR",
@@ -99,5 +99,5 @@ imputeRob <-  function(h5, missingcode=3){
 # N = 0xF
 # Each of these has a position in a vector with length 16. Since R is
 # 1-indexed, the appoprtiate allele is the bit value in decimal - 1.
-#TASSELL_ALLELES <- c("A", "C", "G", "T", "+", "-", NA, NA,
-#                     NA, NA, NA, NA, NA, NA, NA, "N")
+TASSELL_ALLELES <- c("A", "C", "G", "T", "+", "-", NA, NA,
+                     NA, NA, NA, NA, NA, NA, NA, "N")
