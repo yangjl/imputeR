@@ -60,7 +60,7 @@ imputeRob <-  function(h5, missingcode=3){
         c0 <- sum(x == 0)
         c1 <- sum(x == 1)
         c2 <- sum(x == 2)
-        return((2*c0 + c1)/2*(c0 + c1 + c2))
+        return((2*c0 + c1)/(2*(c0 + c1 + c2)))
     })
     message("done.")
     
