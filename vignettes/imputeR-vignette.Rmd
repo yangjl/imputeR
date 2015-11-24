@@ -213,7 +213,7 @@ We now impute parent genotypes using `impute_parent` and extract results using `
 
 ```{r, eval=TRUE}
 #The stuff:
-inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5)
+inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p = GBS.array@freq)
 res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
 res$true_parent <- GBS.array@true_parents[[50]]$hap1 + GBS.array@true_parents[[50]]$hap2
 #error rates
@@ -221,8 +221,10 @@ nrow(subset(res, gmax != true_parent ))/nrow(res)
 nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
 ```
 
+We also did ~100 simulations with size.array varied from 10 to 100. The results was plotted as below. When the size.array increased to more than 40, the error rates using both methods reduced to almost zero. It indicated that, with more than 40 kids the parent genotype can be confidently imputed.
 
 
+![alt text](sim1_res.pdf)
 
 
 ## Real Data
