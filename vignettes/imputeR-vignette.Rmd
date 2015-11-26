@@ -234,7 +234,11 @@ We also did ~100 simulations with size.array varied from 10 to 100. The results 
 
 Then, for each parent, run `impute_parent` as in the toy example above. Note that you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead (this is Very Bad).  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
 
+Jinliang and I were looking at progeny distributions, and an even better way to estimate frequency: taking only the parents (~60) with selfed offspring, simply average the genotypes of the selfed offspring, sum, and divide by ~120.  This should get a really good estimate of allele frequency.
 
+I would also start by dropping any locus for which you don't observe the non reference allele some minimum number (10 sounds good to me) of times.
+
+Finally, keep in mind that the frequency we are working with here is the non reference allele.
 
 
 \newpage
