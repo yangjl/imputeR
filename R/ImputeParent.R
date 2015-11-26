@@ -4,7 +4,9 @@
 #' This function is to impute the parent's most likely genotype from a progeny array of k kids by 
 #' giving a log likelihood threshold.
 #' 
-#' @param GBS.array A GBS.array object generated from create_GBS.array() or sim.array() functions.
+#' @param GBS.array A GBS.array object generated from create_array() or sim.array() functions.
+#' In the object, a vector (at slot freq) of allele frequencies for each locus will be provided. 
+#' It was estimated from the selfed progeny.
 #' 
 #' @param parents A list of the genotypes of all possible parents, including current parent. 
 #' These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles. 
@@ -17,8 +19,6 @@
 #' Missing data should be coded with 3.
 #' @param hom.error Homozygous error rate, default=0.02.
 #' @param het.error Heterozygous error rate, default=0.8.
-#' @param p vector of allele frequencies at each locus. should be estimated from set of all parents.
-#' WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.
 #' @param oddratio The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes. 
 #' The oddratio = NULL means to report the most likely genotype. Default value sets to 0.6931472, 
 #' which is equivalent to most likely genotype being twice as likely as next most likely. 2X as likely
@@ -32,7 +32,7 @@
 #' res <- impute_parent(GBS.array=test)
 #' out <- parentgeno(res, oddratio=0.69, returnall=TRUE)
 #'
-impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p=NULL){
+impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5){
         
     ### need to check genotypes
     numloci <- length(GBS.array@gbs_parents[[1]])
@@ -46,6 +46,7 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p
     probs <- error_mx(hom.error, het.error, imiss)
     
     ### make sfs if not provided?
+    p <- GBS.array@freq
     if(is.null(p)){
         message(sprintf("###>>> no allele frequencies provided. Generating random allele frequencies from a neutral SFS"))
         sfs <- getsfs(x = 1:99/100)
