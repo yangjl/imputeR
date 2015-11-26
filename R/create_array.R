@@ -77,13 +77,14 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
     if(nrow(info[info$frq < minp, ]) > 1-minp) info[info$frq > 1-minp, ]$frq <- 1-minp
     message("done.")
     
+    message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
     for(i in 1:nrow(pinfo)){
         
         ### get pedigree and idx for the p1 and p2
         focalp <- as.character(pinfo$founder[i])
         myped <- ped_focal(ped, focalp)
         
-        message(sprintf("###>>> Preparing the [ %sth ] focal parent: total kids [ %s ],
+        message(sprintf("###>>> Preparing for the [ %sth ] focal parent: total kids [ %s ],
                         including [ %s selfed ] + [ %s outcrossed ] ... ",
                         i, nrow(myped), nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ), appendLF=FALSE)
         ### get snp matrix of each chr
