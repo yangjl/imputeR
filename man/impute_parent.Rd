@@ -6,8 +6,7 @@
 \alias{parentgeno}
 \title{\code{Impute Parent Genotype}}
 \usage{
-impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, imiss = 0.5,
-  p = NULL)
+impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8, imiss = 0.5)
 
 impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
   other_parents, obs_kids)
@@ -15,16 +14,15 @@ impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
 parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 }
 \arguments{
-\item{GBS.array}{A GBS.array object generated from create_GBS.array() or sim.array() functions.}
+\item{GBS.array}{A GBS.array object generated from create_array() or sim.array() functions.
+In the object, a vector (at slot freq) of allele frequencies for each locus will be provided.
+It was estimated from the selfed progeny.}
 
 \item{hom.error}{Homozygous error rate, default=0.02.}
 
 \item{het.error}{Heterozygous error rate, default=0.8.}
 
 \item{imiss}{Individual missing rate. It used for the error matrices.}
-
-\item{p}{vector of allele frequencies at each locus. should be estimated from set of all parents.
-WARNING: if not supplied, a random neutral SFS is used to generate p at each locus.}
 
 \item{parents}{A list of the genotypes of all possible parents, including current parent.
 These are observed GBS data, coded with 0, 1 and 2, which is the copy of alternative alleles.

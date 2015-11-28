@@ -17,7 +17,7 @@ est_frq(pgeno)
 
 ped_focal(ped, focalp)
 
-get_array_item(info, geno, myped, chrj)
+get_array_item(info, geno, myped, chrj, focalp)
 }
 \arguments{
 \item{Geno4imputeR}{input object.}

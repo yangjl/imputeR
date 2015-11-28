@@ -213,7 +213,7 @@ We now impute parent genotypes using `impute_parent` and extract results using `
 
 ```{r, eval=TRUE}
 #The stuff:
-inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p = GBS.array@freq)
+inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5)
 res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
 res$true_parent <- GBS.array@true_parents[[50]]$hap1 + GBS.array@true_parents[[50]]$hap2
 #error rates

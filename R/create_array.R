@@ -86,10 +86,11 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
         
         message(sprintf("###>>> Preparing for the [ %sth ] focal parent: total kids [ %s ],
                         including [ %s selfed ] + [ %s outcrossed ] ... ",
-                        i, nrow(myped), nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ), appendLF=FALSE)
+                        i, nrow(myped), nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ), 
+                appendLF=FALSE)
         ### get snp matrix of each chr
         for(chrj in 1:10){
-            obj <- get_array_item(info, geno, myped, chrj)
+            obj <- get_array_item(info, geno, myped, chrj, focalp)
             outfile <- paste0(outdir, "/p", i, "_", focalp,"_chr", chrj, ".RData"  )
             save(file=outfile, list="obj")
         }
@@ -159,7 +160,7 @@ ped_focal <- function(ped, focalp){
 }
 
 #' @rdname create_array
-get_array_item <- function(info, geno, myped, chrj){
+get_array_item <- function(info, geno, myped, chrj, focalp){
     subinfo <- subset(info, chr == chrj)
     subinfo <- subinfo[order(subinfo$pos),]
     subgeno <- geno[as.character(subinfo$snpid),]

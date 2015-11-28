@@ -4,4 +4,5 @@
 inst/doc
 largedata/*
 slurm-log/*
+*.DS_Store
 
