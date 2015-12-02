@@ -15,7 +15,7 @@
 #' @param size_cutoff Minimum family size required for imputation, default=40.
 #' 
 #' @return Return updated Geno4imputeR object. 
-#' The GBS.array objects will be output to the given direction by family and chr.
+#' The GBS.array objects will be output to the given directory by family and chr.
 #' 
 #' Details of the GBS.array objects.
 #' Slot1: true_parents, a list of data.frame(hap1, hap2).
@@ -182,3 +182,44 @@ get_array_item <- function(info, geno, myped, chrj, focalp){
                freq = subinfo$frq)
     return(obj)
 }
+
+#'
+#' \code{Update GBS.array object} 
+#'
+#' Update GBS.array object slot gbs_parents.
+#' 
+#' @param GBS.array input object.
+#' @param ipdat a data.frame of imputed gbs parents.
+#' 
+#' @return Return updated GBS.array object. 
+#' 
+#' Details of the GBS.array objects.
+#' Slot1: true_parents, a list of data.frame(hap1, hap2).
+#' Slot2: gbs_parents, a list of genotypes. For example, c(1, 2, 2, 0, 3).
+#' Slot3: true_kids, a list of data.frame(hap1, hap2).
+#' Slot4: gbs_kids, a list of kid genotypes. For example, c(1, 1, 3, 1, 2).
+#' Slot5: pedigree, a data.frame (kid, p1, p2). Note, p1 is the focal parent.
+#' Slot6: freq, a vector of reference allele freq for all SNPs.
+#' 
+#'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
+#'   
+#' @examples
+#' update_gbs_parents(GBS.array, ipdat)
+#' 
+update_gbs_parents <- function(GBS.array, ipdat){
+    
+    ped <- GBS.array@pedigree
+    tab <- data.frame(pid=c(ped$parent1, ped$parent2), pidx=c(ped$p1, ped$p2))
+    tab <- tab[!duplicated(tab$pidx),]
+    tab <- tab[order(tab$pidx),]
+    a1 <- nrow(tab)
+    a2 <- length(GBS.array@gbs_parents)
+    if(a1 != a2) stop("ERROR, unique parents number in pedigree not eq to length of gbs_parents!")
+    
+    for(idx in 1:nrow(tab)){
+        GBS.array@gbs_parents[[idx]] <- ipdat[, tab$pid[idx]]
+    }
+    return(GBS.array)
+}
+
+
