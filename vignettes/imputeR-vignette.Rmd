@@ -229,9 +229,6 @@ We also did ~100 simulations with size.array varied from 10 to 100. The results 
 
 ## Real Data
 
-
-
-
 Then, for each parent, run `impute_parent` as in the toy example above. Note that you will need to supply a vector of allele frequencies at each locus estimated from the parents. If you do not supply this or leave `p=NULL`, a random allele frequency drawn from the neutral SFS will be used instead (this is Very Bad).  Since parents are coded as 0,1, or 2 for $N$ parents the allele frequency $p$ at a locus can be calculated as $\frac{\sum_{i=1}^Np_i}{2N}$.
 
 An even better way to estimate frequency: taking only the parents (~50) with selfed offspring, simply average the genotypes of the selfed offspring, sum, and divide by ~100.  This should get a really good estimate of allele frequency. I would also start by dropping any locus for which you don't observe the non reference allele some minimum number (10 sounds good to me) of times. Finally, keep in mind that the frequency we are working with here is the non reference allele.
@@ -248,8 +245,22 @@ ped <- read.table("data/parentage_info.txt", header =TRUE)
 ob2 <- create_array(Geno4imputeR, ped, outdir="largedata/",
                     maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 
+# run through each RData objects and collected the data into 10 data.frames (chromosomes)
+# I ran it using a cluster to reduce computing time.
+files <- list.files(path="largedata/obs", pattern="RData", full.names=TRUE)
+for(JOBID in 1:length(files)){
+    o <- load(files[JOBID])
+    tem <- impute_parent(GBS.array=obj, hom.error = 0.02, het.error = 0.8, imiss = 0.5)
+    res <- parentgeno(tem, oddratio=0.69, returnall=TRUE)
+
+    outfile <- gsub("RData", "csv", files[JOBID])
+    write.table(res, outfile, sep=",", row.names=FALSE, quote=FALSE)
+}
+
 ```
 
+The imputed parent (N=50) genotypes (seprated by chromosomes) had been deposited in this dir: `~/Documents/Github/phasing/largedata/ip/`.
+These 10 files will be available upon request.
 
 \newpage
 

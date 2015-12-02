@@ -6,7 +6,8 @@
 #' \code{phase_chunk} and \code{join_chunks}. The haplotype was phased using a sliding window and extended to 
 #' a large chunk of sequence. The chunks were then joined into chromosomal wide haplotypes.
 #'
-#' @param GBS.array A GBS.array object generated from \code{impute_parent} or\code{sim.array} functions.
+#' @param GBS.array A GBS.array object generated from \code{impute_parent} or \code{sim.array} functions. 
+#' The slot \code{gbs_parents} replaced with imputed parental genotypes.
 #' @param win_length Window length used for halotype phasing. Default=10. 
 #' win_length > 20 will dramatically increase computational burden. 
 #' @param join_length The length of each neighboring chunks used to connect them into a longer one.
