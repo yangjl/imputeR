@@ -13,7 +13,8 @@ write_phase(outchunks)
 phase_error_rate(GBS.array, phase)
 }
 \arguments{
-\item{GBS.array}{A GBS.array object generated from \code{impute_parent} or\code{sim.array} functions.}
+\item{GBS.array}{A GBS.array object generated from \code{impute_parent} or \code{sim.array} functions.
+The slot \code{gbs_parents} replaced with imputed parental genotypes.}
 
 \item{win_length}{Window length used for halotype phasing. Default=10.
 win_length > 20 will dramatically increase computational burden.}

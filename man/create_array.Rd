@@ -37,7 +37,7 @@ parent1 (the first parent id), parent2 (the 2nd parent id).}
 }
 \value{
 Return updated Geno4imputeR object.
-The GBS.array objects will be output to the given direction by family and chr.
+The GBS.array objects will be output to the given directory by family and chr.
 
 Details of the GBS.array objects.
 Slot1: true_parents, a list of data.frame(hap1, hap2).
