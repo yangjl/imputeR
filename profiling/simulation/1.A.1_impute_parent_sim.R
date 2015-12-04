@@ -4,8 +4,8 @@ GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error =
                        rec = 0.25, selfing = 0.5, imiss = 0.5, misscode = 3)
 
 #The stuff:
-inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5, p = GBS.array@freq)
-res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
+inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8)
+res <- parentgeno(inferred_geno_likes, oddratio=0.69, returnall=TRUE)
 res$true_parent <- GBS.array@true_parents[[50]]$hap1 + GBS.array@true_parents[[50]]$hap2
 #error rates
 nrow(subset(res, gmax != true_parent ))/nrow(res)

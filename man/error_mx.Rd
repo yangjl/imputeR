@@ -5,9 +5,9 @@
 \alias{gen_error_mat}
 \title{Return error matrices}
 \usage{
-error_mx(hom.error, het.error, imiss)
+error_mx(hom.error, het.error)
 
-gen_error_mat(hom.error, het.error, imiss)
+gen_error_mat(hom.error, het.error)
 }
 \arguments{
 \item{hom.error}{homozygous error rate, default=0.02.}
