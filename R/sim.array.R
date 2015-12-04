@@ -46,7 +46,7 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     # 2nd, get parent array including selfed and outcrossed parents
     ################################################################
     # get a list of outcrossed parents
-    outcrossed <- rbinom(n=1, prob=(1-selfing), size=size.array)
+    outcrossed <- round((1-selfing)*size.array, 0)
     out_parents <- vector("list", outcrossed)
     out_parents <- lapply(1:outcrossed, function(i) 
         data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
@@ -92,8 +92,14 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
     #which parents are the other parent of each offspring. These are in order since we simulated them that way.
     #other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
     
-    ped <- data.frame(kid=1:size.array, p1= size.array + 1, 
-                      p2= c(1:outcrossed,rep(obs_parent,size.array-outcrossed) ))
+    if(outcrossed >0){
+        ped <- data.frame(kid=1:size.array, p1= size.array + 1, 
+                          p2= c(1:outcrossed,rep(obs_parent,size.array-outcrossed) ))
+    }else{
+        ped <- data.frame(kid=1:size.array, p1= size.array + 1, 
+                          p2= rep(obs_parent,size.array-outcrossed) )
+    }
+    
     
     obj <- new("GBS.array",
                true_parents = parent_array, # list of data.frame(hap1, hap2)
