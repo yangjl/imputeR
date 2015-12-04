@@ -16,40 +16,35 @@
 #' #Genotype error by consideringMendelian segregation rate
 #' error_mx(hom.error=0.02, het.error=0.8)
 #'
-error_mx <- function(hom.error, het.error, imiss){
-    mx <- gen_error_mat(hom.error, het.error, imiss)
+error_mx <- function(hom.error, het.error){
+    mx <- gen_error_mat(hom.error, het.error)
     probs <- vector("list",3)
-    
-    #row/col names <- currently not used, need to fix for clarity
-    rown <- c("g0", "g1", "g2")
-    coln <- c("ob0", "ob1", "ob2", "obN")
     
     ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
     
     #AA by AA (1,0,0), Aa (1/2,1/2,0), aa (0,1,0)
-    probs[[1]] <- list(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(0, 1, 0), nrow = 3, byrow=F, ncol=4) )
+    probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=3), 1/3),
+                       cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=3), 1/3),
+                       cbind(mx*matrix(c(0, 1, 0), nrow = 3, byrow=F, ncol=3), 1/3) )
     #Aa by AA (1/2,1/2,0), Aa (1/4,1/2,1/4), aa (0,1/2,1/2)
-    probs[[2]] <- list(mx*matrix(c(1/2,1/2,0), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(1/4,1/2,1/4), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=4) )
+    probs[[2]] <- list(cbind(mx*matrix(c(1/2,1/2,0), nrow = 3, byrow=F, ncol=3),1/3),
+                       cbind(mx*matrix(c(1/4,1/2,1/4), nrow = 3, byrow=F, ncol=3),1/3),
+                       cbind( mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1/3) )
     #aa by AA (0,1,0), Aa (0,1/2,1/2), aa (1,0,0)
-    probs[[3]] <- list(mx*matrix(c(0,1,0), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=4),
-                       mx*matrix(c(0,0,1), nrow = 3, byrow=F, ncol=4) )
+    probs[[3]] <- list(cbind(mx*matrix(c(0,1,0), nrow = 3, byrow=F, ncol=3),1/3),
+                       cbind(mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1/3),
+                       cbind(mx*matrix(c(0,0,1), nrow = 3, byrow=F, ncol=3),1/3) )
     
     return(probs)
 }
 
 #' @rdname error_mx
-gen_error_mat <- function(hom.error, het.error, imiss){
+gen_error_mat <- function(hom.error, het.error){
     mx <- matrix(c(1-hom.error,hom.error/2,hom.error/2,het.error/2,
                    1-het.error,het.error/2,hom.error/2,hom.error/2,1-hom.error),
                  byrow=T,nrow=3,ncol=3)
-    mx <- cbind(mx*(1-imiss), imiss)
     rownames(mx) <- c("g0", "g1", "g2")
-    colnames(mx) <- c("ob0", "ob1", "ob2", "obN")
+    colnames(mx) <- c("ob0", "ob1", "ob2")
     return(mx)
 }
 
