@@ -94,6 +94,8 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
     return(obs_parent_probs)
 }
 
+pkg <- 
+
 #explain this:
 #log(sum(probs[[which.max(sapply(1:3, function(second_parent) 
 #log(hw_probs(p_locus)[second_parent])+ log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+

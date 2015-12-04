@@ -53,7 +53,6 @@ gen_error_mat <- function(hom.error, het.error, imiss){
     return(mx)
 }
 
-
 #' setup the neutral SFS
 #'
 #' @param x A vector of freq bins. Default 0.01-0.99.

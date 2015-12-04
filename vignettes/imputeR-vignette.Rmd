@@ -85,21 +85,24 @@ save(file="largedata/bode_data.RData", list="ob2")
 
 \newpage
 
-# Infer parent's genotype from GBS data
+# Infer parental genotype
 
 If we have parent's WGS data, this step can be skipped.
 
-We have observed mom and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of  mom's genotype given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
+We have observed mom, dad and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of mom's genotype (focal parent) given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
 
 $P(G|\theta) \propto P(\theta|G) \times P(G)$,   
 
 where $P(G)$ is the probability of the genotype according to the Hardy-Weinberg equilibrium estimated from the population.
-This consists of observed genotypes ($G'$) of both mom and kids. So:
+This consists of observed genotypes ($G'$) of mom, dad and kids. So:
 
-$P(G|\theta)\propto \left( \prod\limits_{i=1}^{k}{P(G'_k|G)} \right) \times P(G'_{mom}|G) \times P(G)$,  
+$P(G_m|\theta)\propto T(G_k|G_m, G_d) \times P(G'_m|G_m)\times P(G'_d|G_d) \times P(G'_k|G_k)\times P(G_m)\times P(G_d)$,  
 
-where $P(G'_{mom}|G)$ is the probability of mom's observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.  
-And $P(G'_{k}|G)$ is the probability of the $k$ th kid’s observed genotype given genotype $G$ by considering error rates and Mendelian segregation rate. The function `impute_parent` was implemented to compute mom's genotype probabilities.
+where $T(G_k|G_m, G_d)$ is the transmission probability of kid genotype given mom and dad's genotype $G_m$ and $G_d$. 
+And, $P(G'|G)$ (including $P(G'_m|G_m), P(P'_d|G_d), P(G'_k|G_k)$) is the probability of observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.
+$P(G_m), P(G_d)$ is the probability of the genotype according to Hardy-Weinberg equilibrium estimated from the population. 
+
+We sum of the log probabilities over all kid and get the maximum likelihood genotype of the focal parent. The function `impute_parent` was implemented to compute mom's genotype probabilities.
 
 ## Example: step by step
 In the below toy example, we simulate a family of self and outcross progeny with 50 kids for 3 loci. We will assume 50% missing data, and 50% selfing rate. 
