@@ -6,7 +6,8 @@
 \alias{write_phase}
 \title{\code{Phasing haplotypes of focal parent}}
 \usage{
-phase_parent(GBS.array, win_length = 10, join_length = 10, verbose = TRUE)
+phase_parent(GBS.array, win_length = 10, join_length = 10,
+  self_cutoff = 20, verbose = TRUE)
 
 write_phase(outchunks)
 

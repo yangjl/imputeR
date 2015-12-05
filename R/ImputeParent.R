@@ -42,6 +42,7 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8){
                     nrow(subset(ped, p1!=p2)), nrow(subset(ped, p1==p2))))
     ### get probability matrices
     gen_error <- gen_error_mat(hom.error, het.error)
+    gen_error <- cbind(gen_error, c(1,1,1))
     probs <- error_mx(hom.error, het.error)
     
     ### make sfs if not provided?

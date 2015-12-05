@@ -48,6 +48,29 @@ gen_error_mat <- function(hom.error, het.error){
     return(mx)
 }
 
+#' @rdname error_mx
+error_mx2 <- function(hom.error, het.error){
+    mx <- gen_error_mat(hom.error, het.error)
+    probs <- vector("list",3)
+    
+    ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
+    
+    #AA by AA (1,0,0), Aa (1/2,1/2,0), aa (0,1,0)
+    probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=3), 1),
+                       cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=3), 1),
+                       cbind(mx*matrix(c(0, 1, 0), nrow = 3, byrow=F, ncol=3), 1) )
+    #Aa by AA (1/2,1/2,0), Aa (1/4,1/2,1/4), aa (0,1/2,1/2)
+    probs[[2]] <- list(cbind(mx*matrix(c(1/2,1/2,0), nrow = 3, byrow=F, ncol=3),1),
+                       cbind(mx*matrix(c(1/4,1/2,1/4), nrow = 3, byrow=F, ncol=3),1),
+                       cbind( mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1) )
+    #aa by AA (0,1,0), Aa (0,1/2,1/2), aa (1,0,0)
+    probs[[3]] <- list(cbind(mx*matrix(c(0,1,0), nrow = 3, byrow=F, ncol=3),1),
+                       cbind(mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1),
+                       cbind(mx*matrix(c(0,0,1), nrow = 3, byrow=F, ncol=3),1) )
+    
+    return(probs)
+}
+
 #' setup the neutral SFS
 #'
 #' @param x A vector of freq bins. Default 0.01-0.99.

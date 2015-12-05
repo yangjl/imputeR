@@ -227,7 +227,7 @@ nrow(subset(res, gor != true_parent & gor !=3 ))/nrow(res)
 We also did ~100 simulations with size.array varied from 10 to 100. The results was plotted as below. When the size.array increased to more than 40, the error rates using both methods reduced to almost zero. It indicated that, with more than 40 kids the parent genotype can be confidently imputed.
 
 
-![alt text](sim1_res.pdf)
+![alt text](sim1_impute_parent.pdf)
 
 
 ## Real Data
@@ -307,12 +307,17 @@ GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error =
 # get perfect parent genotype
 GBS.array <- get_true_GBS(GBS.array)
 # get probability matrices
-probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.5)
+probs <- error_mx2(hom.error=0.02, het.error=0.8)
 # phasing   
-phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=FALSE)
+phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=TRUE)
  
 # compute error rate
 out <- phase_error_rate(GBS.array, phase)
+
+set.seed(13567)
+GBS.array <- sim.array(size.array=50, numloci=500, hom.error=0.02, het.error=0.8, rec=0.25, selfing=0.5, imiss=0.5, misscode=3)
+GBS.array <- get_true_GBS(GBS.array)
+probs <- error_mx(hom.error=0.02, het.error=0.8)
 ```
 
 ## Real data

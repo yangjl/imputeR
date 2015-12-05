@@ -22,11 +22,15 @@
 #' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
 #' 
 #' 
-phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE){
+phase_parent <- function(GBS.array, win_length=10, join_length=10, self_cutoff=20, verbose=TRUE){
 
     #### phasing chunks
     if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
     haps <- setup_haps(win_length) 
+    
+    if(nrow(subset(GBS.array@pedigree, p1==p2)) > self_cutoff){
+        GBS.array@pedigree <- subset(GBS.array@pedigree, p1==p2)
+    }
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
     #### joining chunks
@@ -102,9 +106,10 @@ phase_error_rate <- function(GBS.array, phase){
 #' probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.2) 
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' 
-phase_chunk <- function(GBS.array, win_length, haps, verbose){
+phase_chunk <- function(GBS.array, win_length, haps,  verbose){
     
     ped <- GBS.array@pedigree
+    
     fidx <- unique(ped$p1)
     if(length(fidx) == 1){
         hetsites <- which(GBS.array@gbs_parents[[fidx]]==1)
@@ -221,37 +226,44 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
     
     ### for outcrossed kids: 
     ped1 <- subset(ped, p1 != p2)
-    maxlog1 <- lapply(1:nrow(ped1), function(x) {
-        mymom <- pgeno[[ped1$p2[x]]]
-        if(!is.null(nrow(mymom))){ #phased mom
-            temmom <- mymom[winidx, ]
-            mom_geno <- temmom$hap1 + temmom$hap2
-            mom_haps <- setup_mom_haps(temmom)
-   
-        }else{ #unphased mom
-            mom_geno <- mymom[winidx]
-            het_idx <- which(mom_geno==1)
-            if(length(het_idx) > 0){
-                haps1 <- setup_haps(win_length=length(het_idx))
-                haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
-                allhaps <- c(haps1, haps2)
-                mom_haps <- vector("list", 2^length(het_idx))
-                mom_haps <- lapply(1:length(mom_haps), function(x) {
-                    temhap <- mom_geno/2
-                    temhap[het_idx] <- allhaps[[x]]
-                    return(temhap)})
-            }else{
-                mom_haps <- list(mom_geno/2)
-            }   
-        }
-        maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
-    })
-    
+    if(nrow(ped1) >0){
+        maxlog1 <- lapply(1:nrow(ped1), function(x) {
+            mymom <- pgeno[[ped1$p2[x]]]
+            if(!is.null(nrow(mymom))){ #phased mom
+                temmom <- mymom[winidx, ]
+                mom_geno <- temmom$hap1 + temmom$hap2
+                mom_haps <- setup_mom_haps(temmom)
+                
+            }else{ #unphased mom
+                mom_geno <- mymom[winidx]
+                het_idx <- which(mom_geno==1)
+                if(length(het_idx) > 0){
+                    haps1 <- setup_haps(win_length=length(het_idx))
+                    haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
+                    allhaps <- c(haps1, haps2)
+                    mom_haps <- vector("list", 2^length(het_idx))
+                    mom_haps <- lapply(1:length(mom_haps), function(x) {
+                        temhap <- mom_geno/2
+                        temhap[het_idx] <- allhaps[[x]]
+                        return(temhap)})
+                }else{
+                    mom_haps <- list(mom_geno/2)
+                }   
+            }
+            maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
+        })
+    }else{
+        maxlog1 = 0
+    }
     ### for selfed kids
     ped2 <- subset(ped, p1 == p2)
-    maxlog2 <- lapply(1:nrow(ped2), function(x) {
-        maxlog_hap_selfed_kid(haplotype=dad_hap, kid_geno=kgeno[[ped2$kid[x]]][winidx])
-    })
+    if(nrow(ped2) > 0){
+        maxlog2 <- lapply(1:nrow(ped2), function(x) {
+            maxlog_hap_selfed_kid(haplotype=dad_hap, kid_geno=kgeno[[ped2$kid[x]]][winidx])
+        }) 
+    }else{
+        maxlong2=0
+    }
     return(sum(unlist(maxlog1)) + sum(unlist(maxlog2)))
 } 
 
