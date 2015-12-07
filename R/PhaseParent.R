@@ -76,11 +76,12 @@ phase_error_rate <- function(GBS.array, phase){
     
     true_p <- GBS.array@true_parents[[pidx]]
     p <- subset(true_p, hap1 != hap2)
-    out <- merge(phase, p, by.x="idx", by.y="row.names")
-    idx <- which.max(c(cor(out$hap1.x, out$hap1.y), cor(out$hap1.x, out$hap2.y)))
-    er <- sum(out$hap1.x != out[,4+idx])/nrow(out)
-    message(sprintf("###>>> phasing error rate [ %s ] for [ %s ] heterozygote sites.", 
-                    round(er,3), nrow(out)))
+    out <- merge(phase, p, by.x="idx", by.y="row.names", all=TRUE)
+    #idx <- which.max(c(cor(out$hap1.x, out$hap1.y), cor(out$hap1.x, out$hap2.y)))
+    #er <- sum(out$hap1.x != out[,4+idx])/nrow(out)
+    #message(sprintf("###>>> phasing error rate [ %s ] for [ %s ] heterozygote sites.", 
+    #                round(er,3), nrow(out)))
+    out[is.na(out)] <- -9
     return(out)
 }
 
