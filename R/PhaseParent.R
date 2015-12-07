@@ -263,7 +263,7 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
             maxlog_hap_selfed_kid(haplotype=dad_hap, kid_geno=kgeno[[ped2$kid[x]]][winidx])
         }) 
     }else{
-        maxlong2=0
+        maxlog2=0
     }
     return(sum(unlist(maxlog1)) + sum(unlist(maxlog2)))
 } 
