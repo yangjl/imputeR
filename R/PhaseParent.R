@@ -401,7 +401,7 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
             }
         } else {
             i <- i +1
-            outhaplist[[i]] <- haplist[[chunki]]
+            outhaplist[[i]] <- chunklist[[chunki]]
         } 
     }
     return(outhaplist)
