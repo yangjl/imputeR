@@ -4,10 +4,12 @@
 \alias{get_true_GBS}
 \title{\code{Method for GBS.array}}
 \usage{
-get_true_GBS(GBS.array)
+get_true_GBS(GBS.array, phased.parents = TRUE)
 }
 \arguments{
 \item{GBS.array}{Input a GBS.array object.}
+
+\item{phased.parents}{Whether use the phased non-focal parents.}
 }
 \description{
 Simulate imputed parents. All the gbs_parents are true genotypes.

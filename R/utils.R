@@ -166,8 +166,6 @@ dad_phasing_error <- function(newdad, simdad){
     return(out)
 }
 
-
-
 #' \code{Method for GBS.array} 
 #'
 #' Simulate imputed parents. All the gbs_parents are true genotypes.
@@ -186,6 +184,7 @@ get_true_GBS <- function(GBS.array, phased.parents=TRUE){
         if(phased.parents){
             tem <- GBS.array@true_parents[[pidx]]
             tem$idx <- 1:nrow(tem)
+            tem$chunk <- 1
             GBS.array@gbs_parents[[pidx]] <- tem
         }else{
             true_p <- GBS.array@true_parents[[pidx]]
