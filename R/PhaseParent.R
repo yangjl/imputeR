@@ -204,6 +204,7 @@ infer_dip <- function(GBS.array, winidx, haps, returnhap=FALSE){
     #### function for running one hap ####
     phase_probs <- unlist(lapply(1:length(haps), function(a) {
         sum_max_log_1hap(GBS.array, winidx, dad_hap=haps[[a]])
+        #print(a)
         }))
     #if multiple haps tie, check each against current phase and return one with smallest distance
     if(length(which(phase_probs==max(phase_probs)))>1){

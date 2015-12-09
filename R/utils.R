@@ -180,15 +180,22 @@ get_true_GBS <- function(GBS.array, phased.parents=TRUE){
         stop("### more than one focal parent!!!")
     }
     
-    for(pidx in 1:length(GBS.array@true_parents)){
-        if(phased.parents){
-            tem <- GBS.array@true_parents[[pidx]]
+    if(phased.parents){
+        idx <- unique(GBS.array@pedigree$p1)
+        pidx <- 1:length(GBS.array@true_parents)
+        pidx <- pidx[pidx != idx]
+        
+        for(i in pidx){
+            tem <- GBS.array@true_parents[[i]]
             tem$idx <- 1:nrow(tem)
             tem$chunk <- 1
-            GBS.array@gbs_parents[[pidx]] <- tem
-        }else{
+            GBS.array@gbs_parents[[i]] <- tem
+        }
+        
+    }else{
+        for(pidx in 1:length(GBS.array@true_parents)){
             true_p <- GBS.array@true_parents[[pidx]]
-            GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2  
+            GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2
         }
     }
     return(GBS.array)
