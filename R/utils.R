@@ -192,6 +192,9 @@ get_true_GBS <- function(GBS.array, phased.parents=TRUE){
             GBS.array@gbs_parents[[i]] <- tem
         }
         
+        true_p <- GBS.array@true_parents[[idx]]
+        GBS.array@gbs_parents[[idx]] <- true_p$hap1 + true_p$hap2
+        
     }else{
         for(pidx in 1:length(GBS.array@true_parents)){
             true_p <- GBS.array@true_parents[[pidx]]

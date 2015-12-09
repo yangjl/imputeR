@@ -4,9 +4,9 @@
 library(imputeR)
 
 # to make the random events repeatable
-set.seed(12345)
+set.seed(123457)
 # simulate a GBS.array object
-GBS.array <- sim.array(size.array=30, numloci=1000, hom.error = 0.02, het.error = 0.8,
+GBS.array <- sim.array(size.array=30, numloci=100, hom.error = 0.02, het.error = 0.8,
                        rec = 0.25, selfing = 0, imiss = 0.5, misscode = 3)
 # get perfect parent genotype
 GBS.array <- get_true_GBS(GBS.array, phased.parents = TRUE)
