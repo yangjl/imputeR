@@ -34,7 +34,6 @@
 create_array <- function(Geno4imputeR, ped, outdir="largedata/",
                          maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40){
     
-    
     geno <- Geno4imputeR@genomx
     info <- Geno4imputeR@info
     imiss <- Geno4imputeR@imiss
@@ -45,10 +44,10 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
     
     info <- subset(info, maf > maf_cutoff & chr != 0 & lmiss < lmiss_cutoff)
     imiss <- subset(imiss, imiss < imiss_cutoff)
+    info <- info[order(info$chr, info$pos),]
     geno <- geno[as.character(info$snpid), as.character(row.names(imiss))]
     message(sprintf("###>>> Remaining [ %s ] loci and [ %s ] plants", nrow(geno), ncol(geno)))
-    info <- info[order(info$chr, info$pos),]
-   
+    
     ped <- subset(ped, ped[,1] %in% row.names(imiss))
     ped$parent1 <- as.character(ped$parent1)
     ped$parent2 <- as.character(ped$parent2)
@@ -77,9 +76,6 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
     if(nrow(info[info$frq < minp, ]) > 1-minp) info[info$frq > 1-minp, ]$frq <- 1-minp
     message("done.")
     
-    message(sprintf("###>>> Writing SNP info file to [ %s/snpinfo.csv ]", outdir))
-    write.table(info, paste0(outdir, "/snpinfo.csv"), sep=",", row.names=FALSE, quote=FALSE)
-    
     message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
     for(i in 1:nrow(pinfo)){
         
@@ -99,6 +95,7 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
         }
         message("done.")
     }
+    message(sprintf("Geno4imptueR was updated!"))
     Geno4imputeR@genomx <- geno
     Geno4imputeR@info <- info
     Geno4imputeR@imiss <- imiss
