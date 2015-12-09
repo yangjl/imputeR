@@ -173,8 +173,9 @@ dad_phasing_error <- function(newdad, simdad){
 #' Simulate imputed parents. All the gbs_parents are true genotypes.
 #' 
 #' @param GBS.array Input a GBS.array object.
+#' @param phased.parents Whether use the phased non-focal parents.
 #' 
-get_true_GBS <- function(GBS.array){
+get_true_GBS <- function(GBS.array, phased.parents=TRUE){
     
     ped <- GBS.array@pedigree
     if(length(unique(ped$p1)) != 1){
@@ -182,8 +183,14 @@ get_true_GBS <- function(GBS.array){
     }
     
     for(pidx in 1:length(GBS.array@true_parents)){
-        true_p <- GBS.array@true_parents[[pidx]]
-        GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2 
+        if(phased.parents){
+            tem <- GBS.array@true_parents[[pidx]]
+            tem$idx <- 1:nrow(tem)
+            GBS.array@gbs_parents[[pidx]] <- tem
+        }else{
+            true_p <- GBS.array@true_parents[[pidx]]
+            GBS.array@gbs_parents[[pidx]] <- true_p$hap1 + true_p$hap2  
+        }
     }
     return(GBS.array)
 }
