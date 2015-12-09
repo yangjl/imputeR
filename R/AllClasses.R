@@ -38,6 +38,7 @@ setClass("GBS.array",
              true_kids = "list",
              gbs_kids = "list",
              pedigree = "data.frame",
+             snpinfo = "data.frame",
              freq = "vector"),             
          prototype=prototype(
              true_parents = list(), # list of data.frame(hap1, hap2)
@@ -45,5 +46,6 @@ setClass("GBS.array",
              true_kids = list(),
              gbs_kids = list(),
              pedigree = data.frame(),
+             snpinfo = data.frame(),
              freq = vector())
          )

@@ -47,8 +47,8 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
     imiss <- subset(imiss, imiss < imiss_cutoff)
     geno <- geno[as.character(info$snpid), as.character(row.names(imiss))]
     message(sprintf("###>>> Remaining [ %s ] loci and [ %s ] plants", nrow(geno), ncol(geno)))
-    
-    
+    info <- info[order(info$chr, info$pos),]
+   
     ped <- subset(ped, ped[,1] %in% row.names(imiss))
     ped$parent1 <- as.character(ped$parent1)
     ped$parent2 <- as.character(ped$parent2)
@@ -76,6 +76,9 @@ create_array <- function(Geno4imputeR, ped, outdir="largedata/",
     if(nrow(info[info$frq < minp, ]) > 0) info[info$frq < minp, ]$frq <- minp
     if(nrow(info[info$frq < minp, ]) > 1-minp) info[info$frq > 1-minp, ]$frq <- 1-minp
     message("done.")
+    
+    message(sprintf("###>>> Writing SNP info file to [ %s/snpinfo.csv ]", outdir))
+    write.table(info, paste0(outdir, "/snpinfo.csv"), sep=",", row.names=FALSE, quote=FALSE)
     
     message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
     for(i in 1:nrow(pinfo)){
@@ -179,6 +182,7 @@ get_array_item <- function(info, geno, myped, chrj, focalp){
                #true_kids = true_kids,
                gbs_kids = gbsk,
                pedigree = myped,
+               snpinfo = subinfo,
                freq = subinfo$frq)
     return(obj)
 }
