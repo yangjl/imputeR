@@ -2,30 +2,35 @@
 % Please edit documentation in R/create_array.R
 \name{create_array}
 \alias{create_array}
-\alias{est_frq}
+\alias{est_maf}
+\alias{est_missing}
+\alias{est_pop_maf}
 \alias{get_array_item}
 \alias{ped_focal}
 \alias{pedinfo}
 \title{\code{Create GBS.array objects}}
 \usage{
-create_array(Geno4imputeR, ped, outdir = "largedata/", maf_cutoff = 0.002,
-  lmiss_cutoff = 0.8, imiss_cutoff = 0.8, size_cutoff = 40)
+create_array(geno, ped, outdir = "largedata/obs")
 
 pedinfo(ped)
 
-est_frq(pgeno)
+est_pop_maf(geno, pinfo, ped)
+
+est_maf(pgeno)
+
+est_missing(pgeno)
 
 ped_focal(ped, focalp)
 
-get_array_item(info, geno, myped, chrj, focalp)
+get_array_item(subgeno, myped, focalp)
 }
 \arguments{
-\item{Geno4imputeR}{input object.}
-
 \item{ped}{a data.frame of pedigree information, must include three columns: proid (progeny id),
 parent1 (the first parent id), parent2 (the 2nd parent id).}
 
 \item{outdir}{path of the output dir.}
+
+\item{Geno4imputeR}{input object.}
 
 \item{maf_cutoff}{cutoff for MAF, default=0.002.}
 
