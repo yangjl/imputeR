@@ -31,75 +31,52 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(Geno4imputeR, ped, outdir="largedata/",
-                         maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40){
+create_array <- function(geno, ped, outdir="largedata/obs"){
     
-    geno <- Geno4imputeR@genomx
-    info <- Geno4imputeR@info
-    imiss <- Geno4imputeR@imiss
+    geno <- as.data.frame(geno)
+    message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
     
-    message(sprintf("###>>> Input [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno)))
-    message(sprintf("###>>> Filtering loci with MAF < [ %s ], Locus Missing Rate > [ %s ] and Individual Missing Rate > [ %s ]", 
-                    maf_cutoff, imiss_cutoff, lmiss_cutoff))
-    
-    info <- subset(info, maf > maf_cutoff & chr != 0 & lmiss < lmiss_cutoff)
-    imiss <- subset(imiss, imiss < imiss_cutoff)
-    info <- info[order(info$chr, info$pos),]
-    geno <- geno[as.character(info$snpid), as.character(row.names(imiss))]
-    message(sprintf("###>>> Remaining [ %s ] loci and [ %s ] plants", nrow(geno), ncol(geno)))
-    
-    ped <- subset(ped, ped[,1] %in% row.names(imiss))
-    ped$parent1 <- as.character(ped$parent1)
-    ped$parent2 <- as.character(ped$parent2)
-    pinfo <- pedinfo(ped)
-    pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
-    pinfo <- subset(pinfo, tot > size_cutoff)
-    message(sprintf("###>>> Set minimum family size as [ %s ], [ %s ] parents will be imputed.", 
-                    size_cutoff, nrow(pinfo), nrow(imiss)))
-    
-    message("###>>> Calculating pop allele frq with selfed progeny ... ", appendLF=FALSE)
-    self <- subset(pinfo, nselfer > 0)
-    subkids <- subset(ped, parent1 == parent2 & parent1 == as.character(self$founder)[1] )
-    kidgeno <- geno[,as.character(subkids[,1])]
-    frq <- est_frq(pgeno=kidgeno)
-    frq <- data.frame(frq)
-    for(i in 2:nrow(self)){
-        subkids <- subset(ped, parent1 == parent2 & parent1 == as.character(self$founder)[i] )
-        kidgeno <- geno[,as.character(subkids[,1])]
-        temp <- est_frq(pgeno=kidgeno)
-        temp <- data.frame(temp)
-        frq <- cbind(frq, temp)
+    ped[,1:3] <- apply(ped[,1:3], 2, as.character)
+    if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
+        stop("###>>> Some plant ID could not be found in the genotype file !")
+    }else{
+        pinfo <- pedinfo(ped)
+        pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
     }
-    info$frq <- apply(frq, 1, function(x) mean(x, na.rm=T))
-    minp <- 1/(2*nrow(self))
-    if(nrow(info[info$frq < minp, ]) > 0) info[info$frq < minp, ]$frq <- minp
-    if(nrow(info[info$frq < minp, ]) > 1-minp) info[info$frq > 1-minp, ]$frq <- 1-minp
+    
+    message("###>>> Calculating pop allele frq using selfed progeny ... ", appendLF=FALSE)
+    snpinfo <- geno[,1:3]
+    snpinfo$chr <- as.numeric(as.character(gsub("S|_.*", "", geno$snpid)))
+    snpinfo$pos <- as.numeric(as.character(gsub(".*_", "", geno$snpid)))
+    snpinfo$miss <- est_missing(geno[,-1:-3])
+    snpinfo$totmaf <- est_maf(geno[,-1:-3])
+    snpinfo$frq <- est_pop_maf(geno, pinfo, ped)
     message("done.")
     
     message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
+    geno <- merge(snpinfo, geno[, -2:-3], by="snpid")
     for(i in 1:nrow(pinfo)){
-        
         ### get pedigree and idx for the p1 and p2
         focalp <- as.character(pinfo$founder[i])
         myped <- ped_focal(ped, focalp)
         
-        message(sprintf("###>>> Preparing for the [ %sth ] focal parent: total kids [ %s ],
-                        including [ %s selfed ] + [ %s outcrossed ] ... ",
-                        i, nrow(myped), nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ), 
-                appendLF=FALSE)
+        message(sprintf("###>>> Preparing for the [ %sth ] focal parent [ %s ]", i, focalp)) 
+        message(sprintf("###>>> It has [ %s selfed ] + [ %s outcrossed ] kids ... ", 
+                        nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ))
+
         ### get snp matrix of each chr
         for(chrj in 1:10){
-            obj <- get_array_item(info, geno, myped, chrj, focalp)
+            subgeno <- subset(geno, chr == chrj)
+            subgeno <- subgeno[order(subgeno$pos),]
+            
+            obj <- get_array_item(subgeno, myped, focalp)
             outfile <- paste0(outdir, "/p", i, "_", focalp,"_chr", chrj, ".RData"  )
             save(file=outfile, list="obj")
         }
         message("done.")
     }
-    message(sprintf("Geno4imptueR was updated!"))
-    Geno4imputeR@genomx <- geno
-    Geno4imputeR@info <- info
-    Geno4imputeR@imiss <- imiss
-    return(Geno4imputeR)
+    
+    return(snpinfo)
     
 }
 #' @rdname create_array
@@ -131,13 +108,39 @@ pedinfo <- function(ped){
 }
 
 #' @rdname create_array
-est_frq <- function(pgeno){
+est_pop_maf <- function(geno, pinfo, ped){
+    self <- subset(pinfo, nselfer > 0)
+    subkids <- subset(ped, parent1 == parent2 & parent1 == as.character(self$founder)[1] )
+    
+    frq <- geno[, 1:3]
+    for(i in 1:nrow(self)){
+        kid_id <- subset(ped, parent1 == parent2 & parent1 == as.character(self$founder)[i] )$proid
+        kidgeno <- geno[,as.character(kid_id)]
+        frq$pop <- est_maf(pgeno=kidgeno)
+        names(frq)[ncol(frq)] <- paste0("p", i)
+    }
+    frq$popfrq <- apply(frq[, -1:-3], 1, function(x) mean(x, na.rm=T))
+    minp <- 1/(2*nrow(self))
+    if(nrow(frq[frq$popfrq < minp, ]) > 0) frq[frq$popfrq < minp, ]$popfrq <- minp
+    return(frq$popfrq)
+}
+
+#' @rdname create_array
+est_maf <- function(pgeno){
     freq <- apply(pgeno, 1, function(x){
-        x <- x[!is.na(x)]
         c0 <- sum(x == 0)
         c1 <- sum(x == 1)
         c2 <- sum(x == 2)
         return((2*c2 + c1)/(2*(c0 + c1 + c2)))
+    })
+    return(freq)
+}
+
+#' @rdname create_array
+est_missing <- function(pgeno){
+    freq <- apply(pgeno, 1, function(x){
+        c3 <- sum(x == 3)
+        return(c3/length(x))
     })
     return(freq)
 }
@@ -160,11 +163,8 @@ ped_focal <- function(ped, focalp){
 }
 
 #' @rdname create_array
-get_array_item <- function(info, geno, myped, chrj, focalp){
-    subinfo <- subset(info, chr == chrj)
-    subinfo <- subinfo[order(subinfo$pos),]
-    subgeno <- geno[as.character(subinfo$snpid),]
-    
+get_array_item <- function(subgeno, myped, focalp){
+   
     gbsp <- gbsk <- list()
     gbsp[[1]] <- as.vector(subgeno[, focalp])
     for(k in 1:nrow(myped)){
@@ -179,8 +179,7 @@ get_array_item <- function(info, geno, myped, chrj, focalp){
                #true_kids = true_kids,
                gbs_kids = gbsk,
                pedigree = myped,
-               snpinfo = subinfo,
-               freq = subinfo$frq)
+               snpinfo = subgeno[,1:8])
     return(obj)
 }
 

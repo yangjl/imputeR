@@ -46,7 +46,7 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8){
     probs <- error_mx(hom.error, het.error)
     
     ### make sfs if not provided?
-    p <- GBS.array@freq
+    p <- GBS.array@snpinfo$frq
     if(is.null(p)){
         message(sprintf("###>>> no allele frequencies provided. Generating random allele frequencies from a neutral SFS"))
         sfs <- getsfs(x = 1:99/100)
@@ -64,7 +64,7 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8){
         })
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
     names(geno) <- c("g0", "g1", "g2")
-    
+    rownames(geno) <- GBS.array@snpinfo$snpid
     return(geno)
 }
 
