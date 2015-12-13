@@ -31,7 +31,7 @@
 #' res <- impute_parent(GBS.array=test)
 #' out <- parentgeno(res, oddratio=0.69, returnall=TRUE)
 #'
-impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8){
+impute_parent <- function(GBS.array, major.error, het.error, minor.error){
         
     ### need to check genotypes
     numloci <- length(GBS.array@gbs_parents[[1]])
@@ -41,9 +41,9 @@ impute_parent <- function(GBS.array, hom.error=0.02, het.error=0.8){
     message(sprintf("###>>> Of [ %s ] kids, [ %s ] are outcrossed and [ %s ] are selfed", nrow(ped),
                     nrow(subset(ped, p1!=p2)), nrow(subset(ped, p1==p2))))
     ### get probability matrices
-    gen_error <- gen_error_mat(hom.error, het.error)
+    gen_error <- gen_error_mat(major.error, het.error, minor.error)
     gen_error <- cbind(gen_error, c(1,1,1))
-    probs <- error_mx(hom.error, het.error)
+    probs <- error_mx(major.error, het.error, minor.error)
     
     ### make sfs if not provided?
     p <- GBS.array@snpinfo$frq
