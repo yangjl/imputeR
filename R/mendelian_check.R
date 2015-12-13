@@ -31,7 +31,7 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
+mendelian_check <- function(geno, ped, self_cutoff, depth_cutoff){
     
     geno <- as.data.frame(geno)
     message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
@@ -47,7 +47,6 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
     pinfo <- subset(pinfo, nselfer > self_cutoff)
     message(sprintf("###>>> Calculating error rate using [ %s ] selfed families ...", nrow(pinfo) ))
     
-    out <- data.frame()
     for(i in 1:nrow(pinfo)){
         ### get pedigree and idx for the p1 and p2
         pid <- as.character(pinfo$founder[i])
@@ -55,16 +54,14 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
         subgeno <- geno[, c(pid, kid)]
         
         message(sprintf("###>>> computing [ %s ] selfed families ... ", i))
-        err <- check_error(subgeno, depth_cutoff)
-        err$fam <- pid
-        out <- rbind(out, err)
+        newgeno <- subcheck(subgeno, depth_cutoff)
+        geno[, c(pid, kid)] <- newgeno[, c(pid, kid)]
     }
-    
-    return(out)
+    return(geno)
 }
 
 #'
-check_error <- function(subgeno, depth_cutoff){
+subcheck <- function(subgeno, depth_cutoff){
     
     totcol <- ncol(subgeno)
     subgeno$count0 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==0))
@@ -72,50 +69,12 @@ check_error <- function(subgeno, depth_cutoff){
     subgeno$count2 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==2))
     subgeno$count3 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==3))
     
-    sub0 <- subset(subgeno, count0 > depth_cutoff & count1 ==0 & count2 ==0)[,1]
-    sub1 <- subset(subgeno, count0 > depth_cutoff & count2 > depth_cutoff)[,1]
-    sub2 <- subset(subgeno, count0 + count1 == 0 & count2 > depth_cutoff)[,1]
     
-    #### founder error
-    if(length(sub0) > 0){
-        sub0 <- sub0[sub0 != 3]
-        err0 <- sum(sub0 != 0)/length(sub0)
-        err01 <- sum(sub0 == 1)/length(sub0)
-        err02 <- sum(sub0 == 2)/length(sub0)
-    }else{
-        err0 <- err01 <- err02 <- NA
-    }
+    try(subgeno[subgeno$count0 > depth_cutoff & subgeno$count1 ==0 & subgeno$count2 ==0,1:totcol] <- 0)
+    try(subgeno[subgeno$count0 > depth_cutoff & subgeno$count2 > depth_cutoff,1] <- 1)
+    try(subgeno[subgeno$count0 ==0 & subgeno$count1 ==0 & subgeno$count2 > depth_cutoff,1:totcol] <- 2)
     
-    if(length(sub1) > 0){
-        sub1 <- sub1[sub1 != 3]
-        err1 <- sum(sub1 != 1)/length(sub1)
-        err10 <- sum(sub1 == 0)/length(sub1)
-        err12 <- sum(sub1 == 2)/length(sub1)
-    }else{
-        err1 <- err10 <- err12 <- NA
-    }
-    if(length(sub2) > 0){
-        sub2 <- sub2[sub2 != 3]
-        err2 <- sum(sub2 != 2)/length(sub2)
-        err20 <- sum(sub2 == 0)/length(sub2)
-        err21 <- sum(sub2 == 1)/length(sub2)
-    }else{
-        err2 <- err20 <- err21 <- NA
-    }
-    
-    #### kid err:
-    kid0 <- subset(subgeno, subgeno[,1] == 0)
-    k01 <- sum(kid0$count1)/((totcol-1)*nrow(kid0) - sum(kid0$count3))
-    k02 <- sum(kid0$count2)/((totcol-1)*nrow(kid0) - sum(kid0$count3))
-    
-    kid2 <- subset(subgeno, subgeno[,1] == 2)
-    k21 <- sum(kid2$count1)/((totcol-1)*nrow(kid2) - sum(kid2$count3))
-    k20 <- sum(kid2$count0)/((totcol-1)*nrow(kid2) - sum(kid2$count3))
-    
-    return(data.frame(er0 = err0, er01=err01, er02=err02,
-                      er1=err1, er10=err10, er12=err12,
-                      er2=err2, er20=err20, er21=err21,
-                      k01=k01, k02=k02, k21=k21, k20=k20))
+    return(subgeno)
     
 }
 
