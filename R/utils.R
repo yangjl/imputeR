@@ -16,8 +16,8 @@
 #' #Genotype error by consideringMendelian segregation rate
 #' error_mx(hom.error=0.02, het.error=0.8)
 #'
-error_mx <- function(hom.error, het.error){
-    mx <- gen_error_mat(hom.error, het.error)
+error_mx <- function(major.error, het.error, minor.error){
+    mx <- gen_error_mat(major.error, het.error, minor.error)
     probs <- vector("list",3)
     
     ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
@@ -39,9 +39,9 @@ error_mx <- function(hom.error, het.error){
 }
 
 #' @rdname error_mx
-gen_error_mat <- function(hom.error, het.error){
-    mx <- matrix(c(1-hom.error,hom.error/2,hom.error/2,het.error/2,
-                   1-het.error,het.error/2,hom.error/2,hom.error/2,1-hom.error),
+gen_error_mat <- function(major.error, het.error, minor.error){
+    mx <- matrix(c(1-major.error,major.error/2,major.error/2,het.error/2,
+                   1-het.error,het.error/2,minor.error/2,minor.error/2,1-minor.error),
                  byrow=T,nrow=3,ncol=3)
     rownames(mx) <- c("g0", "g1", "g2")
     colnames(mx) <- c("ob0", "ob1", "ob2")
@@ -49,8 +49,8 @@ gen_error_mat <- function(hom.error, het.error){
 }
 
 #' @rdname error_mx
-error_mx2 <- function(hom.error, het.error){
-    mx <- gen_error_mat(hom.error, het.error)
+error_mx2 <- function(major.error, het.error, minor.error){
+    mx <- gen_error_mat(major.error, het.error, minor.error)
     probs <- vector("list",3)
     
     ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
