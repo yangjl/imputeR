@@ -31,7 +31,7 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, outdir="largedata/obs"){
+create_array <- function(geno, ped, snpinfo=NULL, outdir="largedata/obs"){
     
     geno <- as.data.frame(geno)
     message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
@@ -44,14 +44,16 @@ create_array <- function(geno, ped, outdir="largedata/obs"){
         pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
     }
     
-    message("###>>> Calculating pop allele frq using selfed progeny ... ", appendLF=FALSE)
-    snpinfo <- geno[,1:3]
-    snpinfo$chr <- as.numeric(as.character(gsub("S|_.*", "", geno$snpid)))
-    snpinfo$pos <- as.numeric(as.character(gsub(".*_", "", geno$snpid)))
-    snpinfo$miss <- est_missing(geno[,-1:-3])
-    snpinfo$totmaf <- est_maf(geno[,-1:-3])
-    snpinfo$frq <- est_pop_maf(geno, pinfo, ped)
-    message("done.")
+    if(is.null(snpinfo)){
+        message("###>>> Calculating pop allele frq using selfed progeny ... ", appendLF=FALSE)
+        snpinfo <- geno[,1:3]
+        snpinfo$chr <- as.numeric(as.character(gsub("S|_.*", "", geno$snpid)))
+        snpinfo$pos <- as.numeric(as.character(gsub(".*_", "", geno$snpid)))
+        snpinfo$miss <- est_missing(geno[,-1:-3])
+        snpinfo$totmaf <- est_maf(geno[,-1:-3])
+        snpinfo$frq <- est_pop_maf(geno, pinfo, ped)
+        message("done.")
+    }
     
     message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
     geno <- merge(snpinfo, geno[, -2:-3], by="snpid")
@@ -92,16 +94,18 @@ pedinfo <- function(ped){
     names(pinfo) <- c("founder", "nselfer")
     
     oxinfo <- data.frame(table(c(ox$parent1, ox$parent2)))
-    names(oxinfo) <- c("founder", "nox")
-    
-    pinfo <- merge(pinfo, oxinfo, by="founder", all=TRUE)
-    
-    #pinfo$sid <- gsub("..:.*", "", pinfo$founder)
-    #pinfo$sid <- gsub("_m", "", pinfo$sid)
-    
-    pinfo[is.na(pinfo)] <- 0
+    if(nrow(oxinfo) > 0){
+        names(oxinfo) <- c("founder", "nox")
+        pinfo <- merge(pinfo, oxinfo, by="founder", all=TRUE)
+        #pinfo$sid <- gsub("..:.*", "", pinfo$founder)
+        #pinfo$sid <- gsub("_m", "", pinfo$sid)
+        
+        pinfo[is.na(pinfo)] <- 0
+    }else{
+        pinfo$nox <- 0
+    }
+
     pinfo$tot <- pinfo$nselfer + pinfo$nox
-    
     message(sprintf("###>>> Detected [ %s ] parents with [ %s/%s ] kids/haps",
                     nrow(pinfo), nrow(ped), sum(pinfo$nselfer, na.rm=T)*2 + sum(pinfo$nox) ))
     return(pinfo[order(pinfo$tot, decreasing=TRUE),])

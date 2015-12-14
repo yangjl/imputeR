@@ -35,6 +35,7 @@ impute_parent <- function(GBS.array, major.error, het.error, minor.error){
         
     ### need to check genotypes
     numloci <- length(GBS.array@gbs_parents[[1]])
+    
     ped <- GBS.array@pedigree
     
     message(sprintf("###>>> Loading a progeny array with [ %s ] GBS loci", numloci))
