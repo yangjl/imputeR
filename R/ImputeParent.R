@@ -85,7 +85,7 @@ impute_one_site_v2 <- function(locus, gen_error, p_locus, probs, parents, obs_pa
             ifelse(other_parents[z]==obs_parent,
                    log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1])), 
                    
-                   log(sum(probs[[other_parents[z]]][[inferred_parent]][, obs_kids[[z]][locus]+1]))   
+                   log(sum(probs[[inferred_parent]][[parents[[other_parents[z]]][locus]+1]][, obs_kids[[z]][locus]+1]))   
             )
         } ))    
         obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)
