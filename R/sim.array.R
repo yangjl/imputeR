@@ -107,7 +107,7 @@ sim.array <- function(size.array, numloci, hom.error=0.02, het.error=0.8, rec=0.
                true_kids = true_kids,
                gbs_kids = obs_kids,
                pedigree = ped,
-               freq = p
+               snpinfo = data.frame(snpid=1:numloci, frq=p)
                )
     return(obj)    
 }
