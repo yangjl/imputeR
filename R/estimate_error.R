@@ -1,35 +1,23 @@
 #'
-#' \code{Create GBS.array objects} 
+#' \code{Estimate genotyping error} 
 #'
-#' Create GBS.array objects from Geno4imputeR objects. It will compute population allele frq based on families
-#' of selfed kids. Original Geno4imputeR will be updated and returned. A set of GBS.array objects will be output
-#' to the directory by chromosomes.
+#' Estimate error from data and pedigree.
 #' 
-#' @param Geno4imputeR input object.
+#' @param geno input object.
 #' @param ped a data.frame of pedigree information, must include three columns: proid (progeny id),
 #' parent1 (the first parent id), parent2 (the 2nd parent id). 
-#' @param outdir path of the output dir.
-#' @param maf_cutoff cutoff for MAF, default=0.002.
-#' @param lmiss_cutoff cutoff for locus missing rate, default=0.8.
 #' @param imiss_cutoff cutoff for individual missing rate, default=0.8.
 #' @param size_cutoff Minimum family size required for imputation, default=40.
 #' 
-#' @return Return updated Geno4imputeR object. 
-#' The GBS.array objects will be output to the given directory by family and chr.
-#' 
-#' Details of the GBS.array objects.
-#' Slot1: true_parents, a list of data.frame(hap1, hap2).
-#' Slot2: gbs_parents, a list of genotypes. For example, c(1, 2, 2, 0, 3).
-#' Slot3: true_kids, a list of data.frame(hap1, hap2).
-#' Slot4: gbs_kids, a list of kid genotypes. For example, c(1, 1, 3, 1, 2).
-#' Slot5: pedigree, a data.frame (kid, p1, p2). Note, p1 is the focal parent.
-#' Slot6: freq, a vector of reference allele freq for all SNPs.
-#' 
+#' @return Return error matrix.
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #'   
 #' @examples
-#' create_array(Geno4imputeR, ped, outdir="largedata/", 
-#' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
+#' library(data.table, lib="~/bin/Rlib/")
+#' ped <- read.table("data/parentage_info.txt", header =TRUE)
+#' ped[, 1:3] <- apply(ped[, 1:3], 2, as.character)
+#' geno <- fread("largedata/lcache/teo_recoded.txt")
+#' estimate_error(geno, ped, self_cutoff=30, depth_cutoff=10)
 #' 
 estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
     
@@ -60,10 +48,75 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
         out <- rbind(out, err)
     }
     
+    out2 <- kid_het_err(geno, depth_cutoff, ped, pinfo, verbose=TRUE)
+    
+    return(list(out1, out2))
+}
+
+#' @rdname estimate_error
+kid_het_err <- function(geno, depth_cutoff, ped, pinfo, verbose){
+    
+    if(verbose) message(sprintf("###>>> start to compute het err."))
+    #### matrix of genotype counts using selfed kids
+    count_mx <- list()
+    for(i in 1:nrow(pinfo)){
+        ### get pedigree and idx for the p1 and p2
+        pid <- as.character(pinfo$founder[i])
+        kid <- subset(ped, parent1 == pid & parent2 == pid)$proid
+        subgeno <- geno[, c(pid, kid)]
+        count_mx[[pid]] <- count_geno(subgeno)[, (ncol(subgeno)+1):(ncol(subgeno)+3)]
+    }
+    
+    ### others
+    ocped <- subset(ped, parent1 != parent2 & (parent1 %in% pinfo$founder & parent2 %in% pinfo$founder))
+    
+    out <- data.frame()
+    for(j in 1:nrow(ocped)){
+        if(verbose) message(sprintf("###>>> processing the [ %s ] kids", j))
+        p1_idx0 <- subset(count_mx[[ocped$parent1[j]]], count0 > depth_cutoff & count1 + count2 ==0)
+        p2_idx0 <- subset(count_mx[[ocped$parent2[j]]], count0 > depth_cutoff & count1 + count2 ==0)
+        
+        p1_idx2 <- subset(count_mx[[ocped$parent1[j]]], count0 + count1 ==0 & count2 > depth_cutoff)
+        p2_idx2 <- subset(count_mx[[ocped$parent2[j]]], count0 + count1 ==0 & count2 > depth_cutoff)
+        
+        ## het sites
+        h1 <- merge(p1_idx0, p2_idx2, by="row.names")
+        h2 <- merge(p1_idx2, p2_idx0, by="row.names")
+        hetgeno <- geno[c(h1$Row.names, h2$Row.names) , ocped$proid[j]]
+        hetgeno <- hetgeno[hetgeno != 3]
+        
+        #### major
+        maj <- merge(p1_idx0, p2_idx0, by="row.names")
+        majgeno <- geno[maj$Row.names, ocped$proid[j]]
+        majgeno <- majgeno[majgeno != 3]
+        
+        #### minor
+        mnr <- merge(p1_idx2, p2_idx2, by="row.names")
+        mnrgeno <- geno[mnr$Row.names, ocped$proid[j]]
+        mnrgeno <- mnrgeno[mnrgeno != 3]
+        
+        tem <- data.frame(kid=ocped$proid[j], 
+                          nhet=length(hetgeno), kerr10=sum(hetgeno==0)/length(hetgeno), kerr12=sum(hetgeno==2)/length(hetgeno),
+                          nmaj=length(majgeno), kerr01=sum(majgeno==1)/length(majgeno), kerr02=sum(hetgeno==2)/length(majgeno),
+                          nmnr=length(mnrgeno), kerr20=sum(mnrgeno==0)/length(mnrgeno), kerr21=sum(mnrgeno==1)/length(mnrgeno))
+        out <- rbind(out, tem)
+    }
+    
     return(out)
 }
 
-#'
+#' @rdname estimate_error
+count_geno <- function(subgeno){
+    
+    totcol <- ncol(subgeno)
+    subgeno$count0 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==0))
+    subgeno$count1 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==1))
+    subgeno$count2 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==2))
+    #subgeno$count3 <- apply(subgeno[, 2:totcol], 1, function(x) sum(x==3))
+    return(subgeno)
+}
+
+#' @rdname estimate_error
 check_error <- function(subgeno, depth_cutoff){
     
     totcol <- ncol(subgeno)
