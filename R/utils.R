@@ -16,24 +16,24 @@
 #' #Genotype error by consideringMendelian segregation rate
 #' error_mx(hom.error=0.02, het.error=0.8)
 #'
-error_mx <- function(major.error, het.error, minor.error){
+error_mx <- function(major.error, het.error, minor.error, merr){
     mx <- gen_error_mat(major.error, het.error, minor.error)
     probs <- vector("list",3)
     
     ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
     
     #AA by AA (1,0,0), Aa (1/2,1/2,0), aa (0,1,0)
-    probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=3), 1/3),
-                       cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=3), 1/3),
-                       cbind(mx*matrix(c(0, 1, 0), nrow = 3, byrow=F, ncol=3), 1/3) )
+    probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=3), merr),
+                       cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=3), merr),
+                       cbind(mx*matrix(c(0, 1, 0), nrow = 3, byrow=F, ncol=3), merr) )
     #Aa by AA (1/2,1/2,0), Aa (1/4,1/2,1/4), aa (0,1/2,1/2)
-    probs[[2]] <- list(cbind(mx*matrix(c(1/2,1/2,0), nrow = 3, byrow=F, ncol=3),1/3),
-                       cbind(mx*matrix(c(1/4,1/2,1/4), nrow = 3, byrow=F, ncol=3),1/3),
-                       cbind( mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1/3) )
+    probs[[2]] <- list(cbind(mx*matrix(c(1/2,1/2,0), nrow = 3, byrow=F, ncol=3),merr),
+                       cbind(mx*matrix(c(1/4,1/2,1/4), nrow = 3, byrow=F, ncol=3),merr),
+                       cbind( mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),merr) )
     #aa by AA (0,1,0), Aa (0,1/2,1/2), aa (1,0,0)
-    probs[[3]] <- list(cbind(mx*matrix(c(0,1,0), nrow = 3, byrow=F, ncol=3),1/3),
-                       cbind(mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),1/3),
-                       cbind(mx*matrix(c(0,0,1), nrow = 3, byrow=F, ncol=3),1/3) )
+    probs[[3]] <- list(cbind(mx*matrix(c(0,1,0), nrow = 3, byrow=F, ncol=3),merr),
+                       cbind(mx*matrix(c(0,1/2,1/2), nrow = 3, byrow=F, ncol=3),merr),
+                       cbind(mx*matrix(c(0,0,1), nrow = 3, byrow=F, ncol=3),merr) )
     
     return(probs)
 }
@@ -95,7 +95,7 @@ getsfs <- function(x=1:99/100){
 #' @examples
 #' hw_probs(0.1)
 #'
-hw_probs <- function(x){ return(c(x^2,2*x*(1-x),(1-x)^2))}
+hw_probs <- function(x){ return(c((1-x)^2,2*x*(1-x),x^2))}
 ############################################################################
 
 kids_errs <- function(simk, imputek){
