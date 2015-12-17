@@ -60,7 +60,7 @@ mendelian_check <- function(geno, ped, self_cutoff, depth_cutoff){
     return(geno)
 }
 
-#'
+#' @rdname mendelian_check
 subcheck <- function(subgeno, depth_cutoff){
     
     totcol <- ncol(subgeno)

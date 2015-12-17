@@ -6,16 +6,16 @@
 \alias{gen_error_mat}
 \title{Return error matrices}
 \usage{
-error_mx(hom.error, het.error)
+error_mx(major.error, het.error, minor.error, merr)
 
-gen_error_mat(hom.error, het.error)
+gen_error_mat(major.error, het.error, minor.error)
 
-error_mx2(hom.error, het.error)
+error_mx2(major.error, het.error, minor.error)
 }
 \arguments{
-\item{hom.error}{homozygous error rate, default=0.02.}
-
 \item{het.error}{heterozygous error rate, default=0.8.}
+
+\item{hom.error}{homozygous error rate, default=0.02.}
 }
 \value{
 \code{error_mx} returns a list of three matrices.

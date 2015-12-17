@@ -6,10 +6,10 @@
 \alias{parentgeno}
 \title{\code{Impute Parent Genotype}}
 \usage{
-impute_parent(GBS.array, hom.error = 0.02, het.error = 0.8)
+impute_parent(GBS.array, major.error, het.error, minor.error)
 
 impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
-  other_parents, obs_kids)
+  other_parents, obs_kids, true_p)
 
 parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 }
@@ -17,8 +17,6 @@ parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
 \item{GBS.array}{A GBS.array object generated from create_array() or sim.array() functions.
 In the object, a vector (at slot freq) of allele frequencies for each locus will be provided.
 It was estimated from the selfed progeny.}
-
-\item{hom.error}{Homozygous error rate, default=0.02.}
 
 \item{het.error}{Heterozygous error rate, default=0.8.}
 
@@ -42,6 +40,8 @@ which is equivalent to most likely genotype being twice as likely as next most l
 
 \item{returnall}{For function 'parentgeno', returnall=TRUE will return with all the information; returnall=FALSE will return
 parent's genotype only (either maxlikelihood or, if oddratio is specified, genotypes with low oddratios will be set to missing).}
+
+\item{hom.error}{Homozygous error rate, default=0.02.}
 
 \item{oddratio}{The cutoff used for determining the log likelihood ratio of the highest and the 2nd highest genotypes.
 The oddratio = NULL means to report the most likely genotype. Default value sets to 0.6931472,
