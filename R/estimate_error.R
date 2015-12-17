@@ -35,7 +35,7 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
     pinfo <- subset(pinfo, nselfer > self_cutoff)
     message(sprintf("###>>> Calculating error rate using [ %s ] selfed families ...", nrow(pinfo) ))
     
-    out <- data.frame()
+    out1 <- data.frame()
     for(i in 1:nrow(pinfo)){
         ### get pedigree and idx for the p1 and p2
         pid <- as.character(pinfo$founder[i])
@@ -45,7 +45,7 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
         message(sprintf("###>>> computing [ %s ] selfed families ... ", i))
         err <- check_error(subgeno, depth_cutoff)
         err$fam <- pid
-        out <- rbind(out, err)
+        out1 <- rbind(out1, err)
     }
     
     out2 <- kid_het_err(geno, depth_cutoff, ped, pinfo, verbose=TRUE)
