@@ -97,9 +97,9 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
                     #        log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))
                     
                     #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
-                    sum(sapply(1:3, function(dad) log(hw_probs(p_locus)[dad]) + 
-                                 log(gen_error[dad, parents[[other_parents[z]]][locus]+1])+   
-                                 log(sum(probs[[dad]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    sum(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent]) + 
+                                 log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
+                                 log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
                                  ))
                 }
             }}))
