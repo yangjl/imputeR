@@ -16,12 +16,10 @@
 #' #Genotype error by consideringMendelian segregation rate
 #' error_mx(hom.error=0.02, het.error=0.8)
 #'
-error_mx <- function(major.error, het.error, minor.error, merr){
-    mx <- gen_error_mat(major.error, het.error, minor.error)
+error_probs <- function(mx, merr){
+    
     probs <- vector("list",3)
-    
     ### remember 4th column is missing data NOT SURE THIS SHOULD BE 1!!!
-    
     #AA by AA (1,0,0), Aa (1/2,1/2,0), aa (0,1,0)
     probs[[1]] <- list(cbind(mx*matrix(c(1, 0, 0), nrow = 3, byrow=F, ncol=3), merr),
                        cbind(mx*matrix(c(1/2, 1/2, 0), nrow = 3, byrow=F, ncol=3), merr),
@@ -37,7 +35,6 @@ error_mx <- function(major.error, het.error, minor.error, merr){
     
     return(probs)
 }
-
 #' @rdname error_mx
 gen_error_mat <- function(major.error, het.error, minor.error){
     mx <- matrix(c(1-major.error,major.error/2,major.error/2,het.error/2,

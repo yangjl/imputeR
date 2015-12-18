@@ -31,7 +31,7 @@
 #' res <- impute_parent(GBS.array=test)
 #' out <- parentgeno(res, oddratio=0.69, returnall=TRUE)
 #'
-impute_parent <- function(GBS.array, major.error, het.error, minor.error){
+impute_parent <- function(GBS.array, perr, kerr){
         
     ### need to check genotypes
     numloci <- length(GBS.array@gbs_parents[[1]])
@@ -41,10 +41,11 @@ impute_parent <- function(GBS.array, major.error, het.error, minor.error){
     message(sprintf("###>>> Loading a progeny array with [ %s ] GBS loci", numloci))
     message(sprintf("###>>> Of [ %s ] kids, [ %s ] are outcrossed and [ %s ] are selfed", nrow(ped),
                     nrow(subset(ped, p1!=p2)), nrow(subset(ped, p1==p2))))
-    ### get probability matrices
-    gen_error <- gen_error_mat(major.error, het.error, minor.error)
-    gen_error <- cbind(gen_error, c(1,1,1))
-    probs <- error_mx(major.error, het.error, minor.error, merr=1/3)
+    
+    ### get parental error probability matrices
+    gen_error <- cbind(perr, c(1,1,1))
+    ### get kid error matrices with Mendelian segregation ratio
+    probs <- error_probs(mx=kerr, merr=1/3)
     
     ### make sfs if not provided?
     p <- GBS.array@snpinfo$frq
@@ -87,11 +88,6 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
             if(other_parents[z]==obs_parent){
                 log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
             }else{
-                #idx <- which.max(sapply(1:3, function(second_parent)  
-                #    log(hw_probs(p_locus)[second_parent]) + 
-                #        log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+
-                #        log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))))
-                
                 #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
                 sum(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent]) + 
                                log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
