@@ -37,8 +37,8 @@ out2 <- sim_ip(numloci=100, selfrate=0.5, outfile="test/simip_out2.csv")
 out3 <- sim_ip(numloci=100, selfrate=0, outfile=NULL)
 
 
-par(mfrow=c(2,2))
-plot(out1[,2])
-plot(out2[,2])
-plot(out3[,2])
+par(mfrow=c(1,3))
+plot(out1[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
+plot(out2[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
+plot(out3[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
 
