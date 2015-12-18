@@ -109,8 +109,8 @@ In the below toy example, we simulate a family of self and outcross progeny with
 
 Load the packages.
 ```{r, eval=TRUE}
-library(devtools)
-library(imputeR)
+#library(devtools)
+#library(imputeR)
 ```
 
 First we set some parameters for simulation
