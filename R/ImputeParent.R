@@ -60,10 +60,10 @@ impute_parent <- function(GBS.array, perr, kerr){
     obs_parent <- unique(ped$p1)
     other_parents <- ped$p2
     obs_kids <- GBS.array@gbs_kids
-    #true_p <- ped$true_p
+    true_p <- ped$true_p
     
     res <- lapply(1:numloci, function(locus){
-        impute_one_site(locus, gen_error, p_locus=p[locus], probs, parents, obs_parent, other_parents, obs_kids)
+        impute_one_site(locus, gen_error, p_locus=p[locus], probs, parents, obs_parent, other_parents, obs_kids, true_p)
         })
     geno <- as.data.frame(matrix(unlist(res), ncol=3, byrow=TRUE))
     names(geno) <- c("g0", "g1", "g2")
@@ -72,7 +72,7 @@ impute_parent <- function(GBS.array, perr, kerr){
 }
 
 #' @rdname impute_parent
-impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_parent, other_parents, obs_kids){
+impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_parent, other_parents, obs_kids, true_p){
     
     obs_parent_probs <- as.numeric()
     for(inferred_parent in 1:3){
@@ -88,11 +88,15 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
             if(other_parents[z]==obs_parent){
                 log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
             }else{
-                #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
-                sum(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent]) + 
-                               log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
-                               log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
-                ))
+                if(true_p[z] == 1){
+                    log(sum(probs[[parents[[other_parents[z]]][locus]+1]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                }else{
+                    #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    sum(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent]) + 
+                                   log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
+                                   log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    ))
+                }
             }}))
                
         obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)

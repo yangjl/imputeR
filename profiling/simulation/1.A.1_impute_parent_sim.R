@@ -1,17 +1,22 @@
 # simulaltion 
+true_other_parents <- function(GBS.array){
+    for(i in 1:(length(GBS.array@gbs_parents)-1)){
+        GBS.array@gbs_parents[[i]] <- GBS.array@true_parents[[i]]$hap1 + GBS.array@true_parents[[i]]$hap2
+    }
+    return(GBS.array)
+}
 
-sim_ip <- function(numloci=1000, selfrate=1, outfile=NULL){
-    
-    
+sim_ip <- function(numloci=1000, selfrate=1, outfile=NULL, truep=0){
+
     perr <- gen_error_mat(major.error=0.02, het.error=0.8, minor.error=0.02)
     kerr <- perr
     
     out <- data.frame()
-    for(SIZE in 1:100){
+    for(SIZE in 1:200){
         GBS.array <- sim.array(size.array=SIZE, numloci, hom.error = 0.02, het.error = 0.8, selfing=selfrate,
                                rec = 0.25, imiss = 0.5, misscode = 3)
-        #GBS.array <- true_other_parents(GBS.array)
-        #GBS.array@pedigree$true_p <- truep
+        GBS.array <- true_other_parents(GBS.array)
+        GBS.array@pedigree$true_p <- truep
         
         inferred_geno_likes <- impute_parent(GBS.array, perr, kerr)
         res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)
@@ -31,14 +36,18 @@ sim_ip <- function(numloci=1000, selfrate=1, outfile=NULL){
 out1 <- sim_ip(numloci=100, selfrate=1, outfile="test/simip_out1.csv")
 
 ### half selfed kids and half oc (parents unknow)
-out2 <- sim_ip(numloci=100, selfrate=0.5, outfile="test/simip_out2.csv")
+out2 <- sim_ip(numloci=100, selfrate=0.5, outfile=NULL, truep=0)
 
 ### complete oc (unknow parents)
-out3 <- sim_ip(numloci=100, selfrate=0, outfile=NULL)
+out3 <- sim_ip(numloci=100, selfrate=0, outfile=NULL, truep=0)
+
+### half selfed kids and half oc (parents unknow)
+out4 <- sim_ip(numloci=100, selfrate=0, outfile=NULL, truep=1)
 
 
 par(mfrow=c(1,3))
 plot(out1[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
 plot(out2[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
-plot(out3[,2]/100, main="Parental Imputation", xlab="Family Size", ylab="Imputation Error Rate")
+plot(out3[,2]/100, main="Parental Imputation", xlab="Family Size", ylim=c(0, 0.15), ylab="Imputation Error Rate")
 
+plot(out4[,2]/100, main="Parental Imputation", xlab="Family Size", ylim=c(0, 0.15), ylab="Imputation Error Rate")
