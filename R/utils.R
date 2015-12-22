@@ -1,7 +1,7 @@
 #' Return error matrices
 #'
-#' @param hom.error homozygous error rate, default=0.02.
-#' @param het.error heterozygous error rate, default=0.8.
+#' @param mx A error matrix.
+#' @param merr Error value for missing data.
 #' @return \code{error_mx} returns a list of three matrices.
 #' In this matrix,
 #' row1 is true_gen 00, row2 is true_gen 01, row3 is true_gen 11.
