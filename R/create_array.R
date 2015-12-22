@@ -5,14 +5,15 @@
 #' of selfed kids. Original Geno4imputeR will be updated and returned. A set of GBS.array objects will be output
 #' to the directory by chromosomes.
 #' 
-#' @param Geno4imputeR input object.
+#' @param geno a data.frame of gentoype. coded with 0 (major), 1 (het), 2 (minor) and 3 (missing).
 #' @param ped a data.frame of pedigree information, must include three columns: proid (progeny id),
 #' parent1 (the first parent id), parent2 (the 2nd parent id). 
+#' @param pargeno A data.frame with two columns: "parentid" and "true_p". 
+#' The 2nd column indicates whether the true parental genotype is available.
 #' @param outdir path of the output dir.
-#' @param maf_cutoff cutoff for MAF, default=0.002.
-#' @param lmiss_cutoff cutoff for locus missing rate, default=0.8.
-#' @param imiss_cutoff cutoff for individual missing rate, default=0.8.
-#' @param size_cutoff Minimum family size required for imputation, default=40.
+#' @param bychr Wether to split the data by 10 chromsomes.
+#' @param snpinfo Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).
+#' @param size_cutoff Minimum family size required for calculate snpinfo, default=30.
 #' 
 #' @return Return updated Geno4imputeR object. 
 #' The GBS.array objects will be output to the given directory by family and chr.
@@ -31,28 +32,19 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, snpinfo=NULL, outdir="largedata/obs"){
+create_array <- function(geno, ped, pargeno, outdir="largedata/obs", bychr=FALSE, snpinfo=NULL, self_cutoff=30){
     
-    geno <- as.data.frame(geno)
-    message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
-    
-    ped[,1:3] <- apply(ped[,1:3], 2, as.character)
+    ### check genotype and pedigree data
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
         stop("###>>> Some plant ID could not be found in the genotype file !")
     }else{
+        message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), nrow(ped)))
         pinfo <- pedinfo(ped)
-        pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
     }
     
+    #### get snpinfo
     if(is.null(snpinfo)){
-        message("###>>> Calculating pop allele frq using selfed progeny ... ", appendLF=FALSE)
-        snpinfo <- geno[,1:3]
-        snpinfo$chr <- as.numeric(as.character(gsub("S|_.*", "", geno$snpid)))
-        snpinfo$pos <- as.numeric(as.character(gsub(".*_", "", geno$snpid)))
-        snpinfo$miss <- est_missing(geno[,-1:-3])
-        snpinfo$totmaf <- est_maf(geno[,-1:-3])
-        snpinfo$frq <- est_pop_maf(geno, pinfo, ped)
-        message("done.")
+        snpinfo <- get_snpinfo(geno, ped, self_cutoff)
     }
     
     message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
@@ -67,23 +59,49 @@ create_array <- function(geno, ped, snpinfo=NULL, outdir="largedata/obs"){
                         nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ))
 
         ### get snp matrix of each chr
-        for(chrj in 1:10){
-            subgeno <- subset(geno, chr == chrj)
-            subgeno <- subgeno[order(subgeno$pos),]
-            
-            obj <- get_array_item(subgeno, myped, focalp)
-            outfile <- paste0(outdir, "/p", i, "_", focalp,"_chr", chrj, ".RData"  )
+        if(bychr){
+            for(chrj in 1:10){
+                subgeno <- subset(geno, chr == chrj)
+                subgeno <- subgeno[order(subgeno$pos),]
+                
+                obj <- get_array_item(subgeno, myped, focalp)
+                outfile <- paste0(outdir, "/", focalp,"_chr", chrj, ".RData"  )
+                save(file=outfile, list="obj")
+            }
+        }else{
+            obj <- get_array_item(geno, myped, focalp)
+            outfile <- paste0(outdir, "/", focalp,"_chrall", ".RData"  )
             save(file=outfile, list="obj")
         }
-        message("done.")
     }
+    message("###>>> DONE! <<<###")
+}
+
+#' @rdname create_array
+get_snpinfo <- function(geno, ped, self_cutoff){
+
+    message("###>>> Calculating allele frq and missing using all data ... ", appendLF=FALSE)
+    snpinfo <- geno[,1:3]
+    snpinfo$chr <- as.numeric(as.character(gsub("S|_.*", "", geno$snpid)))
+    snpinfo$pos <- as.numeric(as.character(gsub(".*_", "", geno$snpid)))
+    snpinfo$miss <- est_missing(geno[,-1:-3])
+    snpinfo$totmaf <- est_maf(geno[,-1:-3])
+    message("done.")
     
+    
+    pinfo <- pedinfo(ped)
+    pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
+    
+    message("###>>> Calculating pop frq and missing using selfed family with [ > %s ] kids ... ", self_cutoff)
+    snpinfo$frq <- est_pop_maf(geno, pinfo, ped, self_cutoff)
     return(snpinfo)
     
 }
+
+
 #' @rdname create_array
 pedinfo <- function(ped){
-    
+    ped[,1:3] <- apply(ped[,1:3], 2, as.character)
     ped$parent1 <- as.character(ped$parent1)
     ped$parent2 <- as.character(ped$parent2)
     
@@ -112,8 +130,8 @@ pedinfo <- function(ped){
 }
 
 #' @rdname create_array
-est_pop_maf <- function(geno, pinfo, ped){
-    self <- subset(pinfo, nselfer > 0)
+est_pop_maf <- function(geno, pinfo, ped, self_cutoff){
+    self <- subset(pinfo, nselfer > self_cutoff)
     subkids <- subset(ped, parent1 == parent2 & parent1 == as.character(self$founder)[1] )
     
     frq <- geno[, 1:3]
@@ -162,6 +180,9 @@ ped_focal <- function(ped, focalp){
     }
     myped <- merge(myped, df, by="parent2")
     myped <- myped[, c("proid", "parent1", "parent2", "p1", "p2")]
+    
+    myped <- merge(myped, pargeno, by.x="p2", by.y="parentid")
+    myped <- myped[, c("proid", "parent1", "parent2", "p1", "p2", "true_p")]
     myped <- myped[order(myped$p2),]
     return(myped)
 }
