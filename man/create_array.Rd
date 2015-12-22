@@ -6,39 +6,44 @@
 \alias{est_missing}
 \alias{est_pop_maf}
 \alias{get_array_item}
+\alias{get_snpinfo}
 \alias{ped_focal}
 \alias{pedinfo}
 \title{\code{Create GBS.array objects}}
 \usage{
-create_array(geno, ped, snpinfo = NULL, outdir = "largedata/obs")
+create_array(geno, ped, pargeno, outdir = "largedata/obs", bychr = FALSE,
+  snpinfo = NULL, self_cutoff = 30)
+
+get_snpinfo(geno, ped, self_cutoff)
 
 pedinfo(ped)
 
-est_pop_maf(geno, pinfo, ped)
+est_pop_maf(geno, pinfo, ped, self_cutoff)
 
 est_maf(pgeno)
 
 est_missing(pgeno)
 
-ped_focal(ped, focalp)
+ped_focal(ped, pargeno, focalp)
 
 get_array_item(subgeno, myped, focalp)
 }
 \arguments{
+\item{geno}{a data.frame of gentoype. coded with 0 (major), 1 (het), 2 (minor) and 3 (missing).}
+
 \item{ped}{a data.frame of pedigree information, must include three columns: proid (progeny id),
 parent1 (the first parent id), parent2 (the 2nd parent id).}
 
+\item{pargeno}{A data.frame with two columns: "parentid" and "true_p".
+The 2nd column indicates whether the true parental genotype is available.}
+
 \item{outdir}{path of the output dir.}
 
-\item{Geno4imputeR}{input object.}
+\item{bychr}{Wether to split the data by 10 chromsomes.}
 
-\item{maf_cutoff}{cutoff for MAF, default=0.002.}
+\item{snpinfo}{Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).}
 
-\item{lmiss_cutoff}{cutoff for locus missing rate, default=0.8.}
-
-\item{imiss_cutoff}{cutoff for individual missing rate, default=0.8.}
-
-\item{size_cutoff}{Minimum family size required for imputation, default=40.}
+\item{size_cutoff}{Minimum family size required for calculate snpinfo, default=30.}
 }
 \value{
 Return updated Geno4imputeR object.

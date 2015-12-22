@@ -19,15 +19,14 @@
 #' geno <- fread("largedata/lcache/teo_recoded.txt")
 #' estimate_error(geno, ped, self_cutoff=30, depth_cutoff=10)
 #' 
-estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
+estimate_error <- function(geno, ped, self_cutoff, depth_cutoff, est_kids=FALSE){
     
-    geno <- as.data.frame(geno)
-    message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
-    
-    ped[,1:3] <- apply(ped[,1:3], 2, as.character)
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
         stop("###>>> Some plant ID could not be found in the genotype file !")
     }else{
+        #geno <- as.data.frame(geno)
+        message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), nrow(ped)))
+
         pinfo <- pedinfo(ped)
         pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
     }
@@ -48,9 +47,13 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff){
         out1 <- rbind(out1, err)
     }
     
-    out2 <- kid_het_err(geno, depth_cutoff, ped, pinfo, verbose=TRUE)
+    if(est_kids){
+        out2 <- kid_het_err(geno, depth_cutoff, ped, pinfo, verbose=TRUE)
+        return(list(out1, out2))
+    }else{
+        return(out1)
+    }
     
-    return(list(out1, out2))
 }
 
 #' @rdname estimate_error

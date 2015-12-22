@@ -52,7 +52,7 @@ create_array <- function(geno, ped, pargeno, outdir="largedata/obs", bychr=FALSE
     for(i in 1:nrow(pinfo)){
         ### get pedigree and idx for the p1 and p2
         focalp <- as.character(pinfo$founder[i])
-        myped <- ped_focal(ped, focalp)
+        myped <- ped_focal(ped, pargeno, focalp)
         
         message(sprintf("###>>> Preparing for the [ %sth ] focal parent [ %s ]", i, focalp)) 
         message(sprintf("###>>> It has [ %s selfed ] + [ %s outcrossed ] kids ... ", 
@@ -69,7 +69,7 @@ create_array <- function(geno, ped, pargeno, outdir="largedata/obs", bychr=FALSE
                 save(file=outfile, list="obj")
             }
         }else{
-            obj <- get_array_item(geno, myped, focalp)
+            obj <- get_array_item(subgeno=geno, myped, focalp)
             outfile <- paste0(outdir, "/", focalp,"_chrall", ".RData"  )
             save(file=outfile, list="obj")
         }
@@ -167,7 +167,7 @@ est_missing <- function(pgeno){
     return(freq)
 }
 #' @rdname create_array
-ped_focal <- function(ped, focalp){
+ped_focal <- function(ped, pargeno, focalp){
     myped <- subset(ped, parent1 == focalp | parent2 == focalp)[, 1:3]
     myped$p1 <- 1
     df <- data.frame(parent2=unique(c(focalp, as.character(myped$parent1), as.character(myped$parent2))), p2=1)
@@ -181,7 +181,7 @@ ped_focal <- function(ped, focalp){
     myped <- merge(myped, df, by="parent2")
     myped <- myped[, c("proid", "parent1", "parent2", "p1", "p2")]
     
-    myped <- merge(myped, pargeno, by.x="p2", by.y="parentid")
+    myped <- merge(myped, pargeno, by.x="parent2", by.y="parentid")
     myped <- myped[, c("proid", "parent1", "parent2", "p1", "p2", "true_p")]
     myped <- myped[order(myped$p2),]
     return(myped)

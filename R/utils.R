@@ -35,7 +35,8 @@ error_probs <- function(mx, merr){
     
     return(probs)
 }
-#' @rdname error_mx
+
+#' @rdname error_probs
 gen_error_mat <- function(major.error, het.error, minor.error){
     mx <- matrix(c(1-major.error,major.error/2,major.error/2,het.error/2,
                    1-het.error,het.error/2,minor.error/2,minor.error/2,1-minor.error),
@@ -45,7 +46,7 @@ gen_error_mat <- function(major.error, het.error, minor.error){
     return(mx)
 }
 
-#' @rdname error_mx
+#' @rdname error_probs
 error_mx2 <- function(major.error, het.error, minor.error){
     mx <- gen_error_mat(major.error, het.error, minor.error)
     probs <- vector("list",3)
@@ -143,6 +144,7 @@ mom_phasing_error <- function(phasemom, sim){
     out$rate <- out$err/out$loci
     return(out)
 }
+
 #### dad phasing results
 dad_phasing_error <- function(newdad, simdad){
     names(newdad)[3:4] <- c("ihap1", "ihap2")
