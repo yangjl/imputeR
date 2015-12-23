@@ -32,16 +32,20 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, pargeno, outdir="largedata/obs", bychr=FALSE, snpinfo=NULL, self_cutoff=30){
+create_array <- function(geno, ped, pargeno, pinfo=NULL, snpinfo=NULL, outdir="largedata/obs", bychr=FALSE,  self_cutoff=30){
     
     ### check genotype and pedigree data
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
         stop("###>>> Some plant ID could not be found in the genotype file !")
     }else{
         message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), nrow(ped)))
-        pinfo <- pedinfo(ped)
+        
     }
     
+    #### get pedigree info
+    if(is.null(pinfo)){
+        pinfo <- pedinfo(ped)
+    }
     #### get snpinfo
     if(is.null(snpinfo)){
         snpinfo <- get_snpinfo(geno, ped, self_cutoff)
@@ -55,8 +59,8 @@ create_array <- function(geno, ped, pargeno, outdir="largedata/obs", bychr=FALSE
         myped <- ped_focal(ped, pargeno, focalp)
         
         message(sprintf("###>>> Preparing for the [ %sth ] focal parent [ %s ]", i, focalp)) 
-        message(sprintf("###>>> It has [ %s selfed ] + [ %s outcrossed ] kids ... ", 
-                        nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)) ))
+        message(sprintf("###>>> It has [ %s selfed ] + [ %s outcrossed/ %s know ] kids ... ", 
+                        nrow(subset(myped, p1==p2)), nrow(subset(myped, p1 != p2)), sum(myped$true_p) ))
 
         ### get snp matrix of each chr
         if(bychr){
@@ -87,7 +91,6 @@ get_snpinfo <- function(geno, ped, self_cutoff){
     snpinfo$miss <- est_missing(geno[,-1:-3])
     snpinfo$totmaf <- est_maf(geno[,-1:-3])
     message("done.")
-    
     
     pinfo <- pedinfo(ped)
     pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
