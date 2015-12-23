@@ -80,7 +80,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
         pg_obs <- gen_error[inferred_parent, parents[[obs_parent]][locus]+1] #+1 because obs_parent is 0,1, or 2
     
         #P(G)
-        pg <- hw_probs(p_locus)[inferred_parent]
+        #pg <- hw_probs(p_locus)[inferred_parent]
                 
         #P(kids|G) sum of logs instead of product
         pkg <- sum(sapply(1:length(obs_kids), function(z){
@@ -99,7 +99,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
                 }
             }}))
                
-        obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)
+        obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)#+log(pg)
     }
     return(obs_parent_probs)
 }
