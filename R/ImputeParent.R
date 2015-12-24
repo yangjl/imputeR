@@ -89,7 +89,15 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
                 log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
             }else{
                 if(true_p[z] == 1){
-                    log(sum(probs[[parents[[other_parents[z]]][locus]+1]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    if(parents[[other_parents[z]]][locus] == 3){
+                        #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                        sum(sapply(1:3, function(second_parent) #log(hw_probs(p_locus)[second_parent]) + 
+                            log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
+                                log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                        ))
+                    }else{
+                        log(sum(probs[[parents[[other_parents[z]]][locus]+1]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    }
                 }else{
                     #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
                     sum(sapply(1:3, function(second_parent) #log(hw_probs(p_locus)[second_parent]) + 
@@ -137,7 +145,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
 #' Otherwise it will return the genotypes that pass the specified oddratio; 
 #' if no oddratio is specied (oddratio=NULL) then this returns the maximum likelihood genotypes
 #' 
-parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){ 
+parentgeno <- function(geno, oddratio=0.69, returnall=TRUE){ 
     geno$OR <- apply(geno, 1, function(v){
         n <- length(v)
         return(max(v) - sort(v, partial=n-1)[n-1])  
@@ -147,6 +155,7 @@ parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){
     })
     geno$gor <- 3 # 3 is missing data
     geno[geno$OR > oddratio, ]$gor <- geno[geno$OR > oddratio, ]$gmax
+    geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]$gmax <- 3
     
     if(returnall){
         return(geno)

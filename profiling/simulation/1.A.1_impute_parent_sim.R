@@ -8,12 +8,12 @@ true_other_parents <- function(GBS.array){
 
 sim_ip <- function(numloci=1000, selfrate=1, outfile=NULL, truep=0){
 
-    perr <- gen_error_mat(major.error=0.02, het.error=0.8, minor.error=0.02)
+    perr <- gen_error_mat(major.error=0.02, het.error=0.5, minor.error=0.02)
     kerr <- perr
     
     out <- data.frame()
     for(SIZE in 1:100){
-        GBS.array <- sim.array(size.array=SIZE, numloci, hom.error = 0.02, het.error = 0.8, selfing=selfrate,
+        GBS.array <- sim.array(size.array=SIZE, numloci, hom.error = 0.02, het.error = 0.5, selfing=selfrate,
                                rec = 0.25, imiss = 0.5, misscode = 3)
         GBS.array <- true_other_parents(GBS.array)
         GBS.array@pedigree$true_p <- truep
