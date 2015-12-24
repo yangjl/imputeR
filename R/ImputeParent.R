@@ -155,7 +155,10 @@ parentgeno <- function(geno, oddratio=0.69, returnall=TRUE){
     })
     geno$gor <- 3 # 3 is missing data
     geno[geno$OR > oddratio, ]$gor <- geno[geno$OR > oddratio, ]$gmax
-    try(geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]$gmax <- 3)
+    
+    if(nrow(geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]) >0){
+        geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]$gmax <- 3
+    }
     
     if(returnall){
         return(geno)
