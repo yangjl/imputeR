@@ -11,8 +11,8 @@
 \alias{pedinfo}
 \title{\code{Create GBS.array objects}}
 \usage{
-create_array(geno, ped, pargeno, outdir = "largedata/obs", bychr = FALSE,
-  snpinfo = NULL, self_cutoff = 30)
+create_array(geno, ped, pargeno, pinfo = NULL, snpinfo = NULL,
+  outdir = "largedata/obs", bychr = FALSE, self_cutoff = 30)
 
 get_snpinfo(geno, ped, self_cutoff)
 
@@ -37,11 +37,11 @@ parent1 (the first parent id), parent2 (the 2nd parent id).}
 \item{pargeno}{A data.frame with two columns: "parentid" and "true_p".
 The 2nd column indicates whether the true parental genotype is available.}
 
+\item{snpinfo}{Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).}
+
 \item{outdir}{path of the output dir.}
 
 \item{bychr}{Wether to split the data by 10 chromsomes.}
-
-\item{snpinfo}{Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).}
 
 \item{size_cutoff}{Minimum family size required for calculate snpinfo, default=30.}
 }

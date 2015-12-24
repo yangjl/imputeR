@@ -11,7 +11,7 @@ impute_parent(GBS.array, perr, kerr)
 impute_one_site(locus, gen_error, p_locus, probs, parents, obs_parent,
   other_parents, obs_kids, true_p)
 
-parentgeno(geno, oddratio = 0.6931472, returnall = TRUE)
+parentgeno(geno, oddratio = 0.69, returnall = TRUE)
 }
 \arguments{
 \item{GBS.array}{A GBS.array object generated from create_array() or sim.array() functions.

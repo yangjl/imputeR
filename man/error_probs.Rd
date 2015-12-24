@@ -13,9 +13,9 @@ gen_error_mat(major.error, het.error, minor.error)
 error_mx2(major.error, het.error, minor.error)
 }
 \arguments{
-\item{het.error}{heterozygous error rate, default=0.8.}
+\item{mx}{A error matrix.}
 
-\item{hom.error}{homozygous error rate, default=0.02.}
+\item{merr}{Error value for missing data.}
 }
 \value{
 \code{error_mx} returns a list of three matrices.
