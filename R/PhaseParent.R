@@ -22,15 +22,15 @@
 #' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
 #' 
 #' 
-phase_parent <- function(GBS.array, win_length=10, join_length=10, self_cutoff=20, verbose=TRUE){
+phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE){
 
     #### phasing chunks
     if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
     haps <- setup_haps(win_length) 
     
-    if(nrow(subset(GBS.array@pedigree, p1==p2)) > self_cutoff){
-        GBS.array@pedigree <- subset(GBS.array@pedigree, p1==p2)
-    }
+    #if(nrow(subset(GBS.array@pedigree, p1==p2)) > self_cutoff){
+    #    GBS.array@pedigree <- subset(GBS.array@pedigree, p1==p2)
+    #}
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
     #### joining chunks
