@@ -27,10 +27,6 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     #### phasing chunks
     if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
     haps <- setup_haps(win_length) 
-    
-    #if(nrow(subset(GBS.array@pedigree, p1==p2)) > self_cutoff){
-    #    GBS.array@pedigree <- subset(GBS.array@pedigree, p1==p2)
-    #}
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
     #### joining chunks
@@ -45,18 +41,17 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     }
     
     #### return data.frame
-    out <- write_phase(chunklist, info=GBS.array@snpinfo)
-    ped <- GBS.array@pedigree
-    hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
+    out <- output_phase(chunklist, info=GBS.array@snpinfo)
     if(verbose){ 
+        ped <- GBS.array@pedigree
+        hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
         message(sprintf("###>>> phased [ %s percentage (%s/%s) ] of the heterozygote sites", 
            round(nrow(out)/length(hetsites),3)*100, nrow(out), length(hetsites) )) } 
-    #GBS.array@gbs_parents[[]]
     return(out)
 }
 
 #' @rdname phase_parent
-write_phase <- function(outchunks, info){
+output_phase <- function(outchunks, info){
     momdf <- data.frame()
     for(i in 1:length(outchunks)){
         tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], snpid=info$snpid[outchunks[[i]][[3]]],
@@ -107,10 +102,9 @@ phase_error_rate <- function(GBS.array, phase){
 #' probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.2) 
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' 
-phase_chunk <- function(GBS.array, win_length, haps,  verbose){
+phase_chunk <- function(GBS.array, win_length, haps, verbose){
     
     ped <- GBS.array@pedigree
-    
     fidx <- unique(ped$p1)
     if(length(fidx) == 1){
         hetsites <- which(GBS.array@gbs_parents[[fidx]]==1)
@@ -119,82 +113,28 @@ phase_chunk <- function(GBS.array, win_length, haps,  verbose){
     }
     
     # gets all possible haplotypes for X hets 
-    dad_phase1 = dad_phase2 = as.numeric() 
-    win_hap = old_hap = nophase = as.numeric() 
     haplist <- list()
-    
-    winstart <- i <- 1
-    ###### print progress bar
-    pb <- txtProgressBar(min = winstart, max = length(hetsites)-(win_length-1), style = 3)
-    
-    ## think about hetsites=0 or hetsites < win_length
-    while(winstart <= (length(hetsites)-(win_length-1)) ){
-        if(verbose){ setTxtProgressBar(pb, winstart) } 
-        winidx <- hetsites[winstart:(winstart+win_length-1)]
-        if(winstart==1){ 
-            #arbitrarily assign win_hap to one chromosome initially
-            # get the most likely dad haplotype, NULL is not allowed
-            win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
-            dad_phase1 <- win_hap
-            dad_phase2 <- 1-win_hap
-            idxstart <- 1
-        } else{
-            win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=FALSE)
-            ### comparing current hap with old hap except the last bp for hap extension
-            if(!is.null(win_hap)){
-                
-                same=sum(dad_phase1[(length(dad_phase1)-win_length+2):length(dad_phase1)]==win_hap[1:length(win_hap)-1])
-                
-                if(same == 0){ #totally opposite phase of last window
-                    dad_phase2[length(dad_phase2)+1] <- win_hap[length(win_hap)]
-                    dad_phase1[length(dad_phase1)+1] <- 1-win_hap[length(win_hap)]
-                } else if(same==(win_length-1) ){ #same phase as last window
-                    dad_phase1[length(dad_phase1)+1] <- win_hap[length(win_hap)]
-                    dad_phase2[length(dad_phase2)+1] <- 1-win_hap[length(win_hap)]
-                } else{
-                    diff1 <- sum(abs(dad_phase1[(length(dad_phase1)-win_length+2):length(dad_phase1)]-win_hap[1:length(win_hap)-1]))
-                    diff2 <- sum(abs(dad_phase2[(length(dad_phase1)-win_length+2):length(dad_phase1)]-win_hap[1:length(win_hap)-1]))
-                    if(diff1 > diff2){ #dad_phase1 is less similar to current inferred hap
-                        dad_phase2[length(dad_phase2)+1] <- win_hap[length(win_hap)]
-                        dad_phase1[length(dad_phase1)+1] <- 1-win_hap[length(win_hap)]
-                    } else{ #dad_phase1 is more similar
-                        dad_phase1[length(dad_phase1)+1] <- win_hap[length(win_hap)]
-                        dad_phase2[length(dad_phase2)+1] <- 1-win_hap[length(win_hap)]
-                    }
-                }
-            } else {
-                ### potential recombination in kids, output previous haps and jump to next non-overlap window -JLY###
-                idxend <- winstart + win_length -2
-                haplist[[i]] <- list(dad_phase1, dad_phase2, hetsites[idxstart:idxend])
-                i <- i +1
-                
-                ### warning(paste("Likely recombination at position", winstart+1, sep=" "))
-                ### if new window is still ambiguous, add 1bp and keep running until find the best hap
-                winstart <- winstart + win_length -2
-                while(is.null(win_hap)){ 
-                    winstart <- winstart + 1
-                    win_hap <- jump_win(GBS.array, winstart, win_length, hetsites, haps)
-                    if(is.null(win_hap)){
-                        nophase <- c(nophase, hetsites[winstart])
-                    }
-                }
-                idxstart <- winstart
-                dad_phase1 <- win_hap
-                dad_phase2 <- 1-win_hap
-            }
-        }
-        winstart <- winstart + 1
+    wds <- round(length(hetsites)/win_length, 0)
+    pb <- txtProgressBar(min = 1, max = wds, style = 3)
+    for(wdi in 1:(wds-1)){
+        winidx <- hetsites[(win_length*(wdi-1)+1):(win_length*wdi)]
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wdi]] <- list(win_hap, 1-win_hap, winidx)
+        
+        if(verbose){ setTxtProgressBar(pb, wdi) } 
     }
+    
+    ### phase last window
+    winidx <- hetsites[(win_length*wds):length(hetsites)]
+    haps <- setup_haps(win_length=length(winidx)) 
+    win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+    haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
+    if(verbose){ setTxtProgressBar(pb, wds) }
+    
     close(pb)
-    ### return the two haplotypes
-    #myh1 <- replace(estimated_mom/2, hetsites, mom_phase1)
-    #myh2 <- replace(estimated_mom/2, hetsites, 1-mom_phase1)
-    #return(data.frame(h1=myh1, h2=myh2))
-    #if(verbose){ message(sprintf(">>> phasing done!")) }
     haplist[[i]] <- list(dad_phase1, dad_phase2, hetsites[idxstart:length(hetsites)])
     ## list: hap1, hap2 and idx; info
     return(haplist)
-    #return(list(haplist=haplist, info=list(het=hetsites, nophase=nophase)))
 }
 
 #' @rdname phase_chunk
@@ -234,7 +174,14 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
             if(!is.null(nrow(mymom))){ #phased mom
                 temmom <- mymom[winidx, ]
                 mom_geno <- temmom$hap1 + temmom$hap2
-                mom_haps <- setup_mom_haps(temmom)
+                missidx <- which(mom_geno > 2)
+                mom_geno <- mem_geno[-missidx]
+                if(length(mom_geno) == 0){
+                    maxlog1 = 0
+                }else{
+                    mom_haps <- setup_mom_haps(temmom[-missidx,])
+                    maxlog_hap_ockid(dad_hap[-missidx], mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx[-missidx]])
+                }
                 
             }else{ #unphased mom
                 mom_geno <- mymom[winidx]
@@ -250,9 +197,9 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
                         return(temhap)})
                 }else{
                     mom_haps <- list(mom_geno/2)
-                }   
+                }
+                maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
             }
-            maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
         })
     }else{
         maxlog1 = 0
