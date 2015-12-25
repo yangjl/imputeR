@@ -45,7 +45,7 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     }
     
     #### return data.frame
-    out <- write_phase(chunklist)
+    out <- write_phase(chunklist, info=GBS.array@snpinfo)
     ped <- GBS.array@pedigree
     hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
     if(verbose){ 
@@ -56,10 +56,10 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
 }
 
 #' @rdname phase_parent
-write_phase <- function(outchunks){
+write_phase <- function(outchunks, info){
     momdf <- data.frame()
     for(i in 1:length(outchunks)){
-        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], 
+        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], snpid=info$snpid[outchunks[[i]][[3]]],
                           hap1=outchunks[[i]][[1]], hap2=outchunks[[i]][[2]])
         momdf <- rbind(momdf, tem)
     }
