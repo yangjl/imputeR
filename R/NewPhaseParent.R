@@ -25,7 +25,10 @@
 phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE){
 
     #### phasing chunks
-    if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
+    ped <- GBS.array@pedigree
+    hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
+    if(verbose){ message(sprintf("###>>> start to phase hap chunks with [ %s ] hetsites ...",
+                                 length(hetsites))) }
     haps <- setup_haps(win_length) 
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
@@ -43,8 +46,7 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     #### return data.frame
     out <- output_phase(chunklist, info=GBS.array@snpinfo)
     if(verbose){ 
-        ped <- GBS.array@pedigree
-        hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
+        
         message(sprintf("###>>> phased [ %s percentage (%s/%s) ] of the heterozygote sites", 
            round(nrow(out)/length(hetsites),3)*100, nrow(out), length(hetsites) )) } 
     return(out)
@@ -125,14 +127,13 @@ phase_chunk <- function(GBS.array, win_length, haps, verbose){
     }
     
     ### phase last window
-    winidx <- hetsites[(win_length*wds):length(hetsites)]
+    winidx <- hetsites[(win_length*(wds-1)+1):length(hetsites)]
     haps <- setup_haps(win_length=length(winidx)) 
     win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
     haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
     if(verbose){ setTxtProgressBar(pb, wds) }
     
     close(pb)
-    haplist[[i]] <- list(dad_phase1, dad_phase2, hetsites[idxstart:length(hetsites)])
     ## list: hap1, hap2 and idx; info
     return(haplist)
 }
@@ -175,13 +176,19 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
                 temmom <- mymom[winidx, ]
                 mom_geno <- temmom$hap1 + temmom$hap2
                 missidx <- which(mom_geno > 2)
-                mom_geno <- mem_geno[-missidx]
-                if(length(mom_geno) == 0){
-                    maxlog1 = 0
+                if(length(missidx) >0){
+                    mom_geno <- mom_geno[-missidx]
+                    if(length(mom_geno) == 0){
+                        maxlog1 = 0
+                    }else{
+                        mom_haps <- setup_mom_haps(temmom[-missidx,])
+                        maxlog_hap_ockid(dad_hap[-missidx], mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx[-missidx]])
+                    }
                 }else{
-                    mom_haps <- setup_mom_haps(temmom[-missidx,])
-                    maxlog_hap_ockid(dad_hap[-missidx], mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx[-missidx]])
+                    mom_haps <- setup_mom_haps(temmom)
+                    maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
                 }
+                
                 
             }else{ #unphased mom
                 mom_geno <- mymom[winidx]
@@ -387,4 +394,18 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
         return(dad_haps_lofl[[which.max(phase_probs)]])
     }
 }
-
+############################################################################
+# Setup all possible haplotypes for window of X heterozgous sites
+# This needs to be fixed to remove redundancy. E.g. 010 is the same as 101 and 1010 is same as 0101. 
+# I don't think should bias things in the meantime, just be slow.
+setup_haps <- function(win_length){
+    if(win_length <= 20){
+        alist <- lapply(1:win_length, function(a) c(0,1) )
+        ### give a combination of all 0,1 into a data.frame
+        hapdf <- expand.grid(alist)[1:2^(win_length-1),]
+        ### split the data.frame into a list
+        return(as.list(as.data.frame(t(hapdf)))) 
+    }else{
+        stop("!!! Can not handle [win_length > 20] !")
+    }   
+}
