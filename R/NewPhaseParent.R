@@ -33,16 +33,17 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
     #### joining chunks
-    if(verbose){ message(sprintf("###>>> start to join hap chunks ...")) } 
-    if(length(chunklist) > 1){
-        out <- join_chunks(GBS.array, chunklist, verbose, join_length)
-        if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
-                                     length(chunklist), length(out))) } 
-        chunklist <- out
-    }else{
-        if(verbose){ message(sprintf("###>>> Only one chunk in total!")) } 
+    if(join_length > 0 & join_length <= win_length){
+        if(verbose){ message(sprintf("###>>> start to join hap chunks ...")) } 
+        if(length(chunklist) > 1){
+            out <- join_chunks(GBS.array, chunklist, verbose, join_length)
+            if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
+                                         length(chunklist), length(out))) } 
+            chunklist <- out
+        }else{
+            if(verbose){ message(sprintf("###>>> Only one chunk in total!")) } 
+        }
     }
-    
     #### return data.frame
     out <- output_phase(chunklist, info=GBS.array@snpinfo)
     if(verbose){ 
