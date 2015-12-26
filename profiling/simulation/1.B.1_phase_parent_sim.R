@@ -14,7 +14,7 @@ GBS.array <- get_true_GBS(GBS.array, phased.parents = TRUE, parents.mr=0.1)
 # get probability matrices
 probs <- error_mx2(major.error=0.02, het.error=0.8, minor.error=0.02)
 # phasing   
-phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=TRUE)
+phase <- phase_parent(GBS.array, win_length=10, join_length=10, verbose=TRUE, OR=log(3))
 
 # compute error rate
 out <- phase_error_rate(GBS.array, phase)

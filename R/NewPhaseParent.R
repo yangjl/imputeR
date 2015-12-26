@@ -22,7 +22,7 @@
 #' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
 #' 
 #' 
-phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE){
+phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE, OR=log(3)){
 
     #### phasing chunks
     ped <- GBS.array@pedigree
@@ -36,7 +36,7 @@ phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE)
     if(join_length > 0 & join_length <= win_length){
         if(verbose){ message(sprintf("###>>> start to join hap chunks ...")) } 
         if(length(chunklist) > 1){
-            out <- join_chunks(GBS.array, chunklist, verbose, join_length)
+            out <- join_chunks(GBS.array, chunklist, verbose, join_length, OR)
             if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
                                          length(chunklist), length(out))) } 
             chunklist <- out
@@ -105,7 +105,7 @@ phase_error_rate <- function(GBS.array, phase){
 #' probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.2) 
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' 
-phase_chunk <- function(GBS.array, win_length, haps, verbose){
+phase_chunk <- function(GBS.array, win_length, haps, verbose, OR){
     
     ped <- GBS.array@pedigree
     fidx <- unique(ped$p1)
@@ -318,7 +318,7 @@ jump_win <- function(GBS.array, winstart, win_length, hetsites, haps){
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' res <- join_chunks(GBS.array, chunklist, join_length, verbose=TRUE)
 #' 
-join_chunks <- function(GBS.array, chunklist, join_length, verbose){
+join_chunks <- function(GBS.array, chunklist, join_length, verbose, OR){
     outhaplist <- list(list())
     outhaplist[[1]] <- chunklist[[1]] ### store the extended haps: hap1, hap2 and idx
     i <- 1
@@ -334,7 +334,7 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
                               list(oldchunk[[1]], newchunk[[2]]))
         
         ## link previous and current chunks
-        temhap <- link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length)
+        temhap <- link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length, OR)
         temhap <- c(temhap[[1]], temhap[[2]])
         if(!is.null(temhap)){
             outold <- outhaplist[[i]][[1]]
@@ -366,7 +366,7 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
 
 #' @rdname join_chunks
 #' 
-link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
+link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length, OR){
     ### hapidx: a list of idx [[1]] chunk0; [[2]]chunk1
     
     ### limit the join len to reduce computational burden
@@ -389,11 +389,19 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
     } )
     phase_probs <- unlist(phase_probs)
     #if multiple haps tie, return two un-phased haps
+     
     if(length(which(phase_probs==max(phase_probs)))>1){
         return(NULL)
-    } else {
-        return(dad_haps_lofl[[which.max(phase_probs)]])
-    }
+    }else{
+        v <- phase_probs
+        n <- length(v)
+        t <- max(v) - sort(v, partial=n-1)[n-1]
+        if(t < OR){
+            return(NULL)
+        }else{
+            return(dad_haps_lofl[[which.max(phase_probs)]]) 
+        }
+    } 
 }
 ############################################################################
 # Setup all possible haplotypes for window of X heterozgous sites
