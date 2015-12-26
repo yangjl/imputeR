@@ -11,9 +11,9 @@ impute_kid(GBS.array, winsize = 100, verbose = TRUE)
 
 chr_hap(GBS.array, ped, k, winsize)
 
-hap_in_chunk(momphase, c, win_length, kid)
+hap_in_chunk(p1, p2, c, winsize, kid)
 
-which_kid_hap(haplotype, kidwin)
+which_kid_hap(p1_haps, p2_haps, kidwin)
 }
 \arguments{
 \item{GBS.array}{A GBS.array object with phased parents.
@@ -23,11 +23,11 @@ It can be generated from \code{phase_parent} or\code{sim.array} functions.}
 
 \item{verbose}{Writing verbose messages. Default=TRUE.}
 
-\item{kidwin}{The genotypes of the kid for all heterozygote site of both parents.}
-
 \item{p1_haps}{Two haplotypes in a chunk of the first parent.}
 
 \item{p2_haps}{All possible haplotypes in chunks of the 2nd parent.}
+
+\item{kidwin}{The genotypes of the kid for all heterozygote site of both parents.}
 }
 \value{
 return GBS.array object with kid hapltoypes in slot \code{gbs_kids}.
