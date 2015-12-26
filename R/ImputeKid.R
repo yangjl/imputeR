@@ -27,13 +27,18 @@
 impute_kid <- function(GBS.array, winsize=100, verbose=TRUE){
     
     ped <- GBS.array@pedigree
-    for(k in 1:nrow(ped)){
+    
+    kidhap <- chr_hap(GBS.array, ped, k=1, winsize)
+    df <- data.frame(geno= kidhap$hap1+kidhap$hap2)
+    names(df) <- ped$kid[1]
+    for(k in 2:nrow(ped)){
         if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", k )) }
-        
         kidhap <- chr_hap(GBS.array, ped, k, winsize)
-        GBS.array@gbs_kids[[ped$kid[k]]] <- kidhap
+        tem <- data.frame(geno= kidhap$hap1+kidhap$hap2)
+        df <- cbind(df, tem)
+        names(df)[ncol(df)] <- ped$kid[k]
     }
-    return(GBS.array)
+    return(df)
 }
 
 #' @rdname impute_kid
