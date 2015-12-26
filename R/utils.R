@@ -172,7 +172,7 @@ dad_phasing_error <- function(newdad, simdad){
 #' @param GBS.array Input a GBS.array object.
 #' @param phased.parents Whether use the phased non-focal parents.
 #' 
-get_true_GBS <- function(GBS.array, phased.parents=TRUE){
+get_true_GBS <- function(GBS.array, phased.parents=TRUE, parents.mr=0.1){
     
     ped <- GBS.array@pedigree
     if(length(unique(ped$p1)) != 1){
@@ -188,6 +188,9 @@ get_true_GBS <- function(GBS.array, phased.parents=TRUE){
             tem <- GBS.array@true_parents[[i]]
             tem$idx <- 1:nrow(tem)
             tem$chunk <- 1
+            sites <- sample(1:nrow(tem), nrow(tem)*parents.mr)
+            tem[sites, ]$hap1 <- 3
+            tem[sites, ]$hap2 <- 3
             GBS.array@gbs_parents[[i]] <- tem
         }
         

@@ -10,7 +10,7 @@ set.seed(123457)
 GBS.array <- sim.array(size.array=40, numloci=100, hom.error = 0.02, het.error = 0.8,
                        rec = 0.25, selfing = 1, imiss = 0.5, misscode = 3)
 # get perfect parent genotype
-GBS.array <- get_true_GBS(GBS.array, phased.parents = TRUE)
+GBS.array <- get_true_GBS(GBS.array, phased.parents = TRUE, parents.mr=0.1)
 # get probability matrices
 probs <- error_mx2(major.error=0.02, het.error=0.8, minor.error=0.02)
 # phasing   
