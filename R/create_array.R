@@ -32,7 +32,7 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, pargeno, pinfo=NULL, snpinfo=NULL, outdir="largedata/obs", bychr=FALSE,  self_cutoff=30){
+create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL, outdir="largedata/obs", bychr=FALSE,  self_cutoff=30){
     
     ### check genotype and pedigree data
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
@@ -68,12 +68,12 @@ create_array <- function(geno, ped, pargeno, pinfo=NULL, snpinfo=NULL, outdir="l
                 subgeno <- subset(geno, chr == chrj)
                 subgeno <- subgeno[order(subgeno$pos),]
                 
-                obj <- get_array_item(subgeno, myped, focalp)
+                obj <- get_array_item(subgeno, myped, focalp, pp)
                 outfile <- paste0(outdir, "/", focalp,"_chr", chrj, ".RData"  )
                 save(file=outfile, list="obj")
             }
         }else{
-            obj <- get_array_item(subgeno=geno, myped, focalp)
+            obj <- get_array_item(subgeno=geno, myped, focalp, pp)
             outfile <- paste0(outdir, "/", focalp,"_chrall", ".RData"  )
             save(file=outfile, list="obj")
         }
@@ -191,13 +191,19 @@ ped_focal <- function(ped, pargeno, focalp){
 }
 
 #' @rdname create_array
-get_array_item <- function(subgeno, myped, focalp){
+get_array_item <- function(subgeno, myped, focalp, pp){
    
     gbsp <- gbsk <- list()
     gbsp[[1]] <- as.vector(subgeno[, focalp])
     for(k in 1:nrow(myped)){
         pk <- myped$p2[k]
-        gbsp[[pk]] <- as.vector(subgeno[, myped$parent2[k]])
+        if(!is.null(pp) & sum(myped$parent2[k] %in% names(pp)) > 0){
+            subpp <- pp[[myped$parent2[k]]]
+            subpp <- subpp[subpp$snpid %in% row.names(subgeno),]
+            gbsp[[pk]] <- subpp
+        }else{
+            gbsp[[pk]] <- as.vector(subgeno[, myped$parent2[k]])
+        }
         gbsk[[k]] <- as.vector(subgeno[, myped$proid[k]])
     }
     myped$kid <- 1:nrow(myped)
