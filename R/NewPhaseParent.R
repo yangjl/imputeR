@@ -182,11 +182,11 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
                     if(length(mom_geno) == 0){
                         maxlog1 = 0
                     }else{
-                        mom_haps <- setup_mom_haps(temmom[-missidx,])
+                        mom_haps <- setup_mom_haps(temmom[-missidx, c("hap1", "hap2", "chunk")])
                         maxlog_hap_ockid(dad_hap[-missidx], mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx[-missidx]])
                     }
                 }else{
-                    mom_haps <- setup_mom_haps(temmom)
+                    mom_haps <- setup_mom_haps(temmom[, c("hap1", "hap2", "chunk")])
                     maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
                 }
                 
