@@ -32,14 +32,14 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL, outdir="largedata/obs", bychr=FALSE,  self_cutoff=30){
+create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL, 
+                         outdir="largedata/obs", bychr=FALSE){
     
     ### check genotype and pedigree data
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
         stop("###>>> Some plant ID could not be found in the genotype file !")
     }else{
         message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), nrow(ped)))
-        
     }
     
     #### get pedigree info
@@ -199,7 +199,10 @@ get_array_item <- function(subgeno, myped, focalp, pp){
         pk <- myped$p2[k]
         if(!is.null(pp) & sum(myped$parent2[k] %in% names(pp)) > 0){
             subpp <- pp[[myped$parent2[k]]]
-            subpp <- subpp[subpp$snpid %in% row.names(subgeno),]
+            subpp <- subpp[subpp$snpid %in% subgeno$snpid,]
+            if(nrow(subpp) != nrow(subgeno)){
+                stop("!!! phased parents != subgneo")
+            }
             gbsp[[pk]] <- subpp
         }else{
             gbsp[[pk]] <- as.vector(subgeno[, myped$parent2[k]])
