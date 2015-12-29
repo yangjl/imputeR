@@ -119,13 +119,19 @@ phase_chunk <- function(GBS.array, win_length, haps, verbose, OR){
     haplist <- list()
     wds <- round(length(hetsites)/win_length, 0)
     pb <- txtProgressBar(min = 1, max = wds, style = 3)
-    for(wdi in 1:(wds-1)){
+    #for(wdi in 1:(wds-1)){
+    #    winidx <- hetsites[(win_length*(wdi-1)+1):(win_length*wdi)]
+    #    win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+    #    haplist[[wdi]] <- list(win_hap, 1-win_hap, winidx)
+    #    if(verbose){ setTxtProgressBar(pb, wdi) } 
+    #}
+    ### try to speed up a little bit
+    haplist <- lapply(1:(wds-1), function(wdi){
         winidx <- hetsites[(win_length*(wdi-1)+1):(win_length*wdi)]
         win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
-        haplist[[wdi]] <- list(win_hap, 1-win_hap, winidx)
-        
-        if(verbose){ setTxtProgressBar(pb, wdi) } 
-    }
+        if(verbose){ setTxtProgressBar(pb, wdi) }
+        return(list(win_hap, 1-win_hap, winidx))
+    })
     
     ### phase last window
     winidx <- hetsites[(win_length*(wds-1)+1):length(hetsites)]
@@ -189,8 +195,6 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
                     mom_haps <- setup_mom_haps(temmom[, c("hap1", "hap2", "chunk")])
                     maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
                 }
-                
-                
             }else{ #unphased mom
                 mom_geno <- mymom[winidx]
                 het_idx <- which(mom_geno==1)
