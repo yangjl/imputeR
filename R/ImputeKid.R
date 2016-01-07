@@ -94,7 +94,6 @@ hap_in_chunk <- function(p1, p2, c, subgeno){
     ### make sure there is no missing data for the hetsites
     idx1 <- subset(p1, idx %in% hetsites & hap1 ==3)$idx
     idx2 <- subset(p2, idx %in% hetsites & hap1 ==3)$idx
-    hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
     if(length(c(idx1, idx2)) > 0){
         hetsites <- hetsites[!(hetsites %in% c(idx1, idx2))]
     }
@@ -128,9 +127,8 @@ hap_in_large_chunk <- function(p1c=p1[hetsites,], p2c=p2[hetsites,], subgeno){
         hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
         
         ### make sure there is no missing data for the hetsites
-        idx1 <- subset(p1, idx %in% hetsites & hap1 ==3)$idx
-        idx2 <- subset(p2, idx %in% hetsites & hap1 ==3)$idx
-        hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
+        idx1 <- subset(p1c, idx %in% hetsites & hap1 ==3)$idx
+        idx2 <- subset(p2c, idx %in% hetsites & hap1 ==3)$idx
         if(length(c(idx1, idx2)) > 0){
             hetsites <- hetsites[!(hetsites %in% c(idx1, idx2))]
         }
