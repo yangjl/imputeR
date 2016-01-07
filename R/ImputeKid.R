@@ -24,82 +24,86 @@
 #' phased <- impute_kid(GBS.array, winsize=10, verbose=TRUE)
 #' 
 #' 
-impute_kid <- function(GBS.array, winsize=100, verbose=TRUE){
+impute_kid <- function(geno, pp, ped, kid_idx=1:10, verbose=TRUE){
     
-    ped <- GBS.array@pedigree
+    #ped <- GBS.array@pedigree
+    ped[, 1:3] <- apply(ped[, 1:3], 2, as.character)
     
-    kidhap <- chr_hap(GBS.array, ped, k=1, winsize)
-    df <- data.frame(geno= kidhap$hap1+kidhap$hap2)
-    names(df) <- ped$kid[1]
-    for(k in 2:nrow(ped)){
-        if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", k )) }
-        kidhap <- chr_hap(GBS.array, ped, k, winsize)
-        tem <- data.frame(geno= kidhap$hap1+kidhap$hap2)
-        df <- cbind(df, tem)
-        names(df)[ncol(df)] <- ped$kid[k]
+    ## run one kid
+    ig <- lapply(kid_idx, function(i){
+        if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", i )) }
+        subgeno_all <- geno[, c("snpid", ped$proid[i])]
+        pp1 <- pp[[ped$parent1[i]]]
+        pp2 <- pp[[ped$parent2[i]]]
+        
+        if(sum(pp1$snpid != subgeno_all$snpid) > 0 | sum(pp2$snpid != subgeno_all$snpid) > 0){
+            stop("SNPID not in the same order!")
+        }
+        khap <- one_kid_hap(pp1, pp2, subgeno_all)
+        
+        ### return the genotype
+        return_geno(khap, subgeno_all, pp1, pp2)
+    })
+    
+    if(verbose){ message(sprintf("###>>> Prepare data.frame for output!")) }
+    outg <- ig[[1]]
+    for(i in 2:length(ig)){
+        outg <- merge(outg, ig[[i]], by="snpid")
     }
-    return(df)
+    return(outg)
 }
 
-#' @rdname impute_kid
-chr_hap <- function(GBS.array, ped, k, winsize){
+return_geno <- function(khap, subgeno_all, pp1, pp2){
     
-    phasedp <- GBS.array@gbs_parents
-    kid <- GBS.array@gbs_kids[[ped$kid[k]]]
-    p1 <- phasedp[[ped$p1[k]]]
-    p2 <- phasedp[[ped$p2[k]]]
+    a <- pp1$hap1 + pp2$hap1
+    a[a>2] <- 3
+    subgeno_all[,2] <- a
+    subgeno_all[subgeno_all$snpid %in% khap$snpid, 2] <- khap$geno
+    
+    return(subgeno_all)
+}
+
+
+
+#' @rdname impute_kid
+one_kid_hap <- function(pp1, pp2, subgeno_all){
     
     chr <- data.frame()
-    for(c in unique(p1$chunk)){
-        ### find the best haps in a chunk
-        mychunk <- hap_in_chunk(p1, p2, c, winsize, kid)
-        chr <- rbind(chr, mychunk)
+    for(i in 1:10){
+        p1 <- subset(pp1, chr==i)
+        p2 <- subset(pp2, chr==i)
+        
+        cs <- unique(p1$chunk)
+        mychunk <- lapply(1:length(cs), function(x){
+            hap_in_chunk(p1, p2, cs[x], subgeno=subset(subgeno_all, snpid %in% p1$snpid))
+        })
+        for(j in 1:length(mychunk)){
+            chr <- rbind(chr, mychunk[[j]])
+        }
     }
-    
-    # haps for both homo and heter sites
-    hap1 <- p1$hap1
-    hap1[chr$idx] <- chr$hap1
-    hap2 <- p2$hap2
-    hap2[chr$idx] <- chr$hap2
-    
-    return(data.frame(hap1=hap1, hap2=hap2, chunk1=p1$chunk, chunk2=p2$chunk))
+    chr$geno <- chr$hap1 + chr$hap2
+    return(chr)
 }
 
 #' @rdname impute_kid
-hap_in_chunk <- function(p1, p2, c, winsize, kid){
+hap_in_chunk <- function(p1, p2, c, subgeno){
     
-    p1chunk <- subset(p1, chunk == c & hap1 != hap2)
-    p2chunk <- subset(p2[subset(p1, chunk == c)$idx, ], hap1 != hap2)
+    mysnpid <- subset(p1, chunk == c)$snpid
+    p1chunk <- subset(p1, snpid %in% mysnpid & hap1 != hap2)
+    p2chunk <- subset(p2, snpid %in% mysnpid & hap1 != hap2)
     hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
     
-    ### het sites < window length
-    if(winsize >= length(hetsites)){
-        p1_haps <- list(p1[hetsites,]$hap1, p1[hetsites,]$hap2)
-        p2_haps <- setup_mom_haps(temmom=p2[hetsites,])
-        khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=kid[hetsites])
-    }else{ # het sites > window length, use non-overlap window
-        khaps <- list(p1chunk$p1[hetsites], p1chunk$p1[hetsites]) #place holder for the kid haps
-        for(win in 1:floor(length(hetsites)/winsize) ){
-            myidx <- ((win-1)*winsize+1) : (win*winsize)
-            myhetsites <- hetsites[myidx]
-            p1_haps <- list(p1[myhetsites,]$hap1, p1[myhetsites,]$hap2)
-            p2_haps <- setup_mom_haps(temmom=p2[myhetsites,])
-            tem_haps <- which_kid_hap(p1_haps, p2_haps, kidwin=kid[myhetsites])
-            
-            khaps[[1]][myidx] <- tem_haps[[1]]
-            khaps[[2]][myidx] <- tem_haps[[2]]
-        }
-        ##### calculate last window
-        myidx <- (length(hetsites)-winsize+1) : length(hetsites)
-        myhetsites <- hetsites[myidx]
-        p1_haps <- list(p1[myhetsites,]$hap1, p1[myhetsites,]$hap2)
-        p2_haps <- setup_mom_haps(temmom=p2[myhetsites,])
-        tem_haps <- which_kid_hap(p1_haps, p2_haps, kidwin=kid[myhetsites])
+    ### make sure there is no missing data for the hetsites
+    p1chunk <- subset(p1, idx %in% hetsites & hap1 !=3)
+    p2chunk <- subset(p2, idx %in% hetsites & hap1 !=3)
+    hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
+    hetsnpid <- subset(p1, idx %in% hetsites)$snpid
         
-        khaps[[1]][myidx] <- tem_haps[[1]]
-        khaps[[2]][myidx] <- tem_haps[[2]]
-    }
-    mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], chunk=c, idx=hetsites)
+    ### het sites < window length
+    p1_haps <- list(p1[hetsites,]$hap1, p1[hetsites,]$hap2)
+    p2_haps <- setup_dad_haps(df=p2[hetsites,], hapcol=4)
+    khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=subgeno[subgeno$snpid %in% hetsnpid,2])
+    mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], snpid=hetsnpid)
     return(mychunk)
 }
 
@@ -129,14 +133,29 @@ which_kid_hap <- function(p1_haps, p2_haps, kidwin){
         #given the current phased geno and given mom is het. (which is why probs[[2]])
         h1 <- p1_haps[[tab$idx1[geno]]]
         h2 <- p2_haps[[tab$idx2[geno]]]
-        geno_probs[geno]=sum( sapply(1:length(h1), function(zz) 
-            log( probs[[h1[zz]+1]][[h2[zz]+1]][genotypes[[geno]][zz]+1, kidwin[zz]+1])))
+        geno_probs[geno]=sum( unlist(lapply(1:length(h1), function(zz) 
+            log( probs[[h1[zz]+1]][[h2[zz]+1]][genotypes[[geno]][zz]+1, kidwin[zz]+1]))))
     }
     
     maxidx <- which.max(geno_probs)
     return(list(p1_haps[[tab$idx1[maxidx]]], p2_haps[[tab$idx2[maxidx]]]))
 }
 
-
-
+#' @rdname phase_chunk
+#' @param temmom Must be a data.frame(hap1, hap2, chunk, idx)
+setup_dad_haps <- function(df, hapcol=4){
+    haps1 <- setup_haps(length(unique(df$chunk)))
+    haps2 <- lapply(1:length(haps1), function(x) 1-haps1[[x]])
+    allhaps <- c(haps1, haps2)
+    mom_haps <- lapply(1:length(allhaps), function(x){
+        temout <- c()
+        k = 1
+        for(c in unique(df$chunk)){
+            temout <- c(temout, df[df$chunk==c, allhaps[[x]][k]+hapcol])
+            k <- k+1
+        }
+        return(temout)    
+    })
+    return(mom_haps)
+}
 
