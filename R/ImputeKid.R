@@ -98,17 +98,60 @@ hap_in_chunk <- function(p1, p2, c, subgeno){
     if(length(c(idx1, idx2)) > 0){
         hetsites <- hetsites[!(hetsites %in% c(idx1, idx2))]
     }
-    if(length(hetsites) > 0){
-        hetsnpid <- subset(p1, idx %in% hetsites)$snpid
-        ### het sites < window length
-        p1_haps <- list(p1[hetsites,]$hap1, p1[hetsites,]$hap2)
-        p2_haps <- setup_dad_haps(df=p2[hetsites,], hapcol=4)
-        khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=subgeno[subgeno$snpid %in% hetsnpid,2])
-        mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], snpid=hetsnpid)
-        return(mychunk)
+    if(length(hetsites) > 0 ){
+        
+        if(length(unique(p2chunk$chunk)) <= 10){
+            hetsnpid <- subset(p1, idx %in% hetsites)$snpid
+            ### het sites < window length
+            p1_haps <- list(p1[hetsites,]$hap1, p1[hetsites,]$hap2)
+            p2_haps <- setup_dad_haps(df=p2[hetsites,], hapcol=4)
+            khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=subgeno[subgeno$snpid %in% hetsnpid,2])
+            mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], snpid=hetsnpid)
+            return(mychunk) 
+        }else{
+            hap_in_large_chunk(p1c=p1[hetsites,], p2c=p2[hetsites,])
+        }
+        
     }else{
         return(NULL)
     }
+}
+
+
+hap_in_large_chunk <- function(p1c=p1[hetsites,], p2c=p2[hetsites,], subgeno){
+    
+    cs <- unique(p2c$chunk)
+    mychunk <- lapply(1:length(cs), function(x){
+        mysnpid <- subset(p2c, chunk == cs[x])$snpid
+        p1chunk <- subset(p1c, snpid %in% mysnpid & hap1 != hap2)
+        p2chunk <- subset(p2c, snpid %in% mysnpid & hap1 != hap2)
+        hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
+        
+        ### make sure there is no missing data for the hetsites
+        idx1 <- subset(p1, idx %in% hetsites & hap1 ==3)$idx
+        idx2 <- subset(p2, idx %in% hetsites & hap1 ==3)$idx
+        hetsites <- sort(unique(c(p1chunk$idx, p2chunk$idx)))
+        if(length(c(idx1, idx2)) > 0){
+            hetsites <- hetsites[!(hetsites %in% c(idx1, idx2))]
+        }
+        
+        if(length(hetsites) > 0 ){
+            hetsnpid <- subset(p1c, idx %in% hetsites)$snpid
+            ### het sites < window length
+            p2_haps <- list(p2c[p2c$snpid %in% hetsnpid,]$hap1, p2c[p2c$snpid %in% hetsnpid,]$hap2)
+            p1_haps <- setup_dad_haps(df=p1c[p1c$snpid %in% hetsnpid,], hapcol=4)
+            khaps <- which_kid_hap(p1_haps, p2_haps, kidwin=subgeno[subgeno$snpid %in% hetsnpid,2])
+            mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], snpid=hetsnpid)
+            return(mychunk)
+        }else{
+            return(NULL)
+        }
+    })
+    temchr <- data.frame()
+    for(j in 1:length(mychunk)){
+        temchr <- rbind(temchr, mychunk[[j]])
+    }
+    return(temchr)
 }
 
 # give this mom haplotype and a kid's diploid genotype over the window and returns maximum prob
