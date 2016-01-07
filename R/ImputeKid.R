@@ -72,7 +72,7 @@ one_kid_hap <- function(pp1, pp2, subgeno_all){
         
         cs <- unique(p1$chunk)
         mychunk <- lapply(1:length(cs), function(x){
-            #print(x)
+            print(x)
             hap_in_chunk(p1, p2, c=cs[x], subgeno=subset(subgeno_all, snpid %in% p1$snpid))
         })
         for(j in 1:length(mychunk)){

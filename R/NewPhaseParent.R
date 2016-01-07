@@ -412,13 +412,9 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length, OR){
 # This needs to be fixed to remove redundancy. E.g. 010 is the same as 101 and 1010 is same as 0101. 
 # I don't think should bias things in the meantime, just be slow.
 setup_haps <- function(win_length){
-    if(win_length <= 20){
-        alist <- lapply(1:win_length, function(a) c(0,1) )
-        ### give a combination of all 0,1 into a data.frame
-        hapdf <- expand.grid(alist)[1:2^(win_length-1),]
-        ### split the data.frame into a list
-        return(as.list(as.data.frame(t(hapdf)))) 
-    }else{
-        stop("!!! Can not handle [win_length > 20] !")
-    }   
+    alist <- lapply(1:win_length, function(a) c(0,1) )
+    ### give a combination of all 0,1 into a data.frame
+    hapdf <- expand.grid(alist)[1:2^(win_length-1),]
+    ### split the data.frame into a list
+    return(as.list(as.data.frame(t(hapdf))))   
 }
