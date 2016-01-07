@@ -109,9 +109,9 @@ hap_in_chunk <- function(p1, p2, c, subgeno){
             mychunk <- data.frame(hap1=khaps[[1]], hap2=khaps[[2]], snpid=hetsnpid)
             return(mychunk) 
         }else{
-            hap_in_large_chunk(p1c=p1[hetsites,], p2c=p2[hetsites,])
+            mychunk <- hap_in_large_chunk(p1c=p1[hetsites,], p2c=p2[hetsites,], subgeno)
+            return(mychunk)
         }
-        
     }else{
         return(NULL)
     }
