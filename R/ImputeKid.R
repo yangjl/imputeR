@@ -66,13 +66,13 @@ return_geno <- function(khap, subgeno_all, pp1, pp2){
 one_kid_hap <- function(pp1, pp2, subgeno_all){
     
     chr <- data.frame()
-    for(i in 1:10){
-        p1 <- subset(pp1, chr==i)
-        p2 <- subset(pp2, chr==i)
+    for(chri in 1:10){
+        p1 <- subset(pp1, chr==chri)
+        p2 <- subset(pp2, chr==chri)
         
         cs <- unique(p1$chunk)
         mychunk <- lapply(1:length(cs), function(x){
-            print(x)
+            #print(x)
             hap_in_chunk(p1, p2, c=cs[x], subgeno=subset(subgeno_all, snpid %in% p1$snpid))
         })
         for(j in 1:length(mychunk)){
