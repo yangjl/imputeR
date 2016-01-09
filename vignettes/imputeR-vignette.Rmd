@@ -89,113 +89,22 @@ save(file="largedata/bode_data.RData", list="ob2")
 
 If we have parent's WGS data, this step can be skipped.
 
-We have observed mom, dad and observed (selfed) kids.  We want to know $P(G|\theta)$, or the probability of mom's genotype (focal parent) given observed data $\theta$. And according to [Bayes' theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem), 
+We have observed mom, dad and observed kids (selfed and outcrossed). The likelihood of focal parents' genotype is
 
-$P(G|\theta) \propto P(\theta|G) \times P(G)$,   
+$P(G) = P(\theta|G)$,   
 
-where $P(G)$ is the probability of the genotype according to the Hardy-Weinberg equilibrium estimated from the population.
+where $P(G)$ is the probability of the genotype given the observed data.
 This consists of observed genotypes ($G'$) of mom, dad and kids. So:
 
-$P(G_m|\theta)\propto T(G_k|G_m, G_d) \times P(G'_m|G_m)\times P(G'_d|G_d) \times P(G'_k|G_k)\times P(G_m)\times P(G_d)$,  
+$$P(G_m) = \prod\limits_{i=1}^{k1}(G'_{k1}|G_m)\times \prod\limits_{i=1}^{k1}\sum_{d}^{0,1,2}(G'_{k2}|G_m, G_d) \times P(G'_m|G_m)$$
 
-where $T(G_k|G_m, G_d)$ is the transmission probability of kid genotype given mom and dad's genotype $G_m$ and $G_d$. 
-And, $P(G'|G)$ (including $P(G'_m|G_m), P(P'_d|G_d), P(G'_k|G_k)$) is the probability of observed genotype given a true genotype $G$ by considering error rates, i.e. GBS homozygote error = 0.02 and heterozygote error = 0.8.
+where $G'_{k1}|G_m)$ is the probability of a selfed kid given mom's genotype $G_m$. 
+$\sum_{d}^{0,1,2}(G'_{k2}|G_m, G_d)$ is the probability of a outcrossed kid given mom's genotype $G_m$ and sum over all dad's genotype $G_d$.
+
+
 $P(G_m), P(G_d)$ is the probability of the genotype according to Hardy-Weinberg equilibrium estimated from the population. 
 
 We sum of the log probabilities over all kid and get the maximum likelihood genotype of the focal parent. The function `impute_parent` was implemented to compute mom's genotype probabilities.
-
-## Example: step by step
-In the below toy example, we simulate a family of self and outcross progeny with 50 kids for 3 loci. We will assume 50% missing data, and 50% selfing rate. 
-
-Load the packages.
-```{r, eval=TRUE}
-#library(devtools)
-#library(imputeR)
-```
-
-First we set some parameters for simulation
-```{r}
-    source("~/Documents/Github/imputeR/R/utils.R")
-    source("~/Documents/Github/imputeR/R/ImputeParent.R")
-    misscode = 3 # code for missing data
-    numloci=3 # number of loci
-    hom.error=0.02 #homozygous error rate
-    het.error=0.8 #heterozygous error rate
-    imiss=0.5 # % missing data
-    selfing=0.5 # selfing rate
-    size.array=50 # family size
-    rec=0.25 # mean number of crossovers per chromosome
-```
-
-Then we make our focal parent
-```{r}
-
-    sfs <- getsfs() # make neutral SFS
-    p <- sample(sfs, numloci, replace=TRUE) # get sample of allele freqs from SFS
-    
-    ### make focal_parent using a data.frame
-    sim_focal <- data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p))
-```
-
-
-What is our focal parent's real genotype:
-```{r}
-    sim_focal
-```
-
-
-Now we make our set of parents for each of our progeny. The first `outcrossed` parents are random, 
-then next `size.array - outcrossed` are just the focal parent.
-```{r}
-    #first outcrossed
-    outcrossed=rbinom(n=1,prob=(1-selfing),size=size.array)
-    out_parents <- vector("list", outcrossed)
-    out_parents <- lapply(1:outcrossed, function(i) 
-        data.frame(hap1=ran.hap(numloci,p), hap2=ran.hap(numloci,p)) )
-    #now selfed
-    self_parents <- vector("list", size.array-outcrossed)
-    self_parents <- lapply(1:(size.array-outcrossed), function(i) sim_focal )
-    #combine
-    if(outcrossed==0){
-        parent_array=self_parents  
-    }else if (outcrossed==size.array){
-        parent_array=out_parents
-    }else{
-        parent_array=c(out_parents,self_parents)
-    }
-
-    #now we make their diploid genotypes, 
-    #we add the focal parent on to the end of the parents array
-    parents<-lapply(parent_array, function(q) q[,1]+q[,2]  )
-    parents[[size.array+1]]=c(sim_focal[,1]+sim_focal[,2])
-    #finally, add error to make some crappy gbs_parents
-    gbs_parents=lapply(parents, function(a) add_error(a,hom.error,het.error))
-```
-
-Now we make a progeny array for these parents.
-```{r}
-    progeny <- vector("list", size.array)
-    #use the kid function!
-    #each entry in progeny list has two vectors. [[1]] is true genotype, [[2]] is observed
-    progeny <- lapply(1:size.array, function(a) 
-        kid(p2=list(parent_array[[a]][,1], parent_array[[a]][,2]), 
-            p1=list(sim_focal[,1],sim_focal[,2]), 
-            het.error, hom.error, rec, imiss, misscode))
-    
-    #now setup observed kids
-    obs_kids=list()
-    for(i in 1:size.array){ obs_kids[[i]]=progeny[[i]][[2]] }
-```
-
-Now we impute the focal parent
-```{r}
-    #which parent is our focal one? Here we set to end of parents array for ease
-    obs_parent=size.array+1 #focal parent
-    #which parents are the other parent of each offspring. 
-    #These are in order since we simulated them that way.
-    other_parents=c(1:outcrossed,rep(obs_parent,size.array-outcrossed)) #list of other parents
-
-```
 
 
 ## Simulation using `imputeR` package
@@ -203,7 +112,7 @@ Now we impute the focal parent
 Above simulation steps were packed into a funcion `sim.array`. 
 This function will simulate a `GBS.array` object for the following functions to use.
 
-```{r}
+```{r, eval=FALSE}
 # find help
 ?sim.array
 # make the simulation repeatable
@@ -214,7 +123,7 @@ GBS.array <- sim.array(size.array=50, numloci=100, hom.error = 0.02, het.error =
 
 We now impute parent genotypes using `impute_parent` and extract results using `parentgeno`. In the resulting table `res`, the first three columns are the probabilities of genotype `0, 1, 2`. The 4th column is the odd ratio of the highest divided by the 2nd highest probability. `gmax` parent's genotype with the highest probability. `gor` parent's genotype with the highest probability and `OR` bigger than the specified threshold.
 
-```{r, eval=TRUE}
+```{r, eval=FALSE}
 #The stuff:
 inferred_geno_likes <- impute_parent(GBS.array, hom.error=0.02, het.error=0.8, imiss=0.5)
 res <- parentgeno(inferred_geno_likes, oddratio=0.6931472, returnall=TRUE)

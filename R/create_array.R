@@ -32,8 +32,8 @@
 #' create_array(Geno4imputeR, ped, outdir="largedata/", 
 #' maf_cutoff=0.002, lmiss_cutoff=0.8, imiss_cutoff=0.8, size_cutoff=40)
 #' 
-create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL, 
-                         outdir="largedata/obs", bychr=FALSE){
+create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, 
+                         outdir="largedata/obs", bychr=FALSE, bychunk=NULL){
     
     ### check genotype and pedigree data
     if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
@@ -45,14 +45,24 @@ create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL,
     #### get pedigree info
     if(is.null(pinfo)){
         pinfo <- pedinfo(ped)
+        message(sprintf("###>>> Calculating pedigree info ..."))
+    }else{
+        message(sprintf("###>>> Loaded pedigree info ..."))
     }
     #### get snpinfo
-    if(is.null(snpinfo)){
-        snpinfo <- get_snpinfo(geno, ped, self_cutoff)
-    }
+    #if(is.null(snpinfo)){
+    #    snpinfo <- get_snpinfo(geno, ped, self_cutoff)
+    #    message(sprintf("###>>> Calculating SNP info ..."))
+    #}else{
+    #    message(sprintf("###>>> Loaded SNP info ..."))
+    #}
     
-    message(sprintf("###>>> Preparing GBS.array objects, it will take a while."))
-    geno <- merge(snpinfo, geno[, -2:-3], by="snpid")
+    message(sprintf("###>>> Preparing GBS.array objects into [ %s ] chr and [ %s ] chunks", 
+                    10*sum(bychr), sum(bychunk)))
+    #geno <- merge(snpinfo, geno[, -2:-3], by="snpid")
+    geno$major <- as.numeric(as.character(gsub("^S|_.*$", "", geno$snpid)))
+    geno$minor <- as.numeric(as.character(gsub("^S.*_", "", geno$snpid)))
+    names(geno)[2:3] <- c("chr", "pos")
     for(i in 1:nrow(pinfo)){
         ### get pedigree and idx for the p1 and p2
         focalp <- as.character(pinfo$founder[i])
@@ -66,11 +76,25 @@ create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL,
         if(bychr){
             for(chrj in 1:10){
                 subgeno <- subset(geno, chr == chrj)
-                subgeno <- subgeno[order(subgeno$pos),]
+                #subgeno <- subgeno[order(subgeno$pos),]
                 
-                obj <- get_array_item(subgeno, myped, focalp, pp)
-                outfile <- paste0(outdir, "/", focalp,"_chr", chrj, ".RData"  )
-                save(file=outfile, list="obj")
+                ### divided into chunks by hetsites
+                if(!is.null(bychunk)){
+                    
+                    cks <- divid_chunks(subgeno, bychunk, focalp)
+                    message(sprintf("###>>> Divided Chr [ %s ] into [ %s ] chunks!", chrj, length(cks)))
+                    
+                    for(k in length(cks)){
+                        obj <- get_array_item(subgeno, myped, focalp, pp)
+                        outfile <- paste0(outdir, "/", focalp,"_chr", chrj, "_chunk", k, ".RData"  )
+                        save(file=outfile, list="obj")
+                    }
+                    
+                }else{
+                    obj <- get_array_item(subgeno, myped, focalp, pp)
+                    outfile <- paste0(outdir, "/", focalp,"_chr", chrj, ".RData"  )
+                    save(file=outfile, list="obj")
+                }
             }
         }else{
             obj <- get_array_item(subgeno=geno, myped, focalp, pp)
@@ -80,6 +104,39 @@ create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL, snpinfo=NULL,
     }
     message("###>>> DONE! <<<###")
 }
+
+
+divid_chunks <- function(subgeno, bychunk, focalp){
+    
+    idx <- which(subgeno[, focalp] ==1)
+    totc <- floor(length(idx)/bychunk)
+    
+    chgeno <- list()
+    if(totc <= 1){
+        chgeno[[1]] <- subgeno
+    }else{
+        for(ci in 1:totc){
+            if(ci == 1){
+                btidx <- idx[bychunk] 
+                chgeno[[ci]] <- subgeno[1:btidx,]
+                
+            }else if(totc > 1 & ci != totc){
+                tpidx <- btidx +1
+                btidx <- idx[bychunk*ci]
+                chgeno[[ci]] <- subgeno[tpidx:btidx,]
+            }else if(totc >1 & ci == totc){
+                tpidx <- btidx +1
+                chgeno[[ci]] <- subgeno[tpidx:nrow(subgeno),]
+            }else{
+                stop("!!! divid chunk error!!!")
+            }
+        }
+    }
+    return(chgeno)
+    
+}
+
+
 
 #' @rdname create_array
 get_snpinfo <- function(geno, ped, self_cutoff){
@@ -98,9 +155,7 @@ get_snpinfo <- function(geno, ped, self_cutoff){
     message("###>>> Calculating pop frq and missing using selfed family with [ > %s ] kids ... ", self_cutoff)
     snpinfo$frq <- est_pop_maf(geno, pinfo, ped, self_cutoff)
     return(snpinfo)
-    
 }
-
 
 #' @rdname create_array
 pedinfo <- function(ped){
@@ -200,8 +255,8 @@ get_array_item <- function(subgeno, myped, focalp, pp){
         if(!is.null(pp) & sum(myped$parent2[k] %in% names(pp)) > 0){
             subpp <- pp[[myped$parent2[k]]]
             subpp <- subpp[subpp$snpid %in% subgeno$snpid,]
-            if(nrow(subpp) != nrow(subgeno)){
-                stop("!!! phased parents != subgneo")
+            if(sum(names(subpp$snpid) != names(subgeno$snpid)) > 0){
+                stop("!!! snpid of phased parents != subgneo !!!")
             }
             gbsp[[pk]] <- subpp
         }else{
@@ -216,7 +271,7 @@ get_array_item <- function(subgeno, myped, focalp, pp){
                #true_kids = true_kids,
                gbs_kids = gbsk,
                pedigree = myped,
-               snpinfo = subgeno[,1:8])
+               snpinfo = subgeno[,1:3])
     return(obj)
 }
 
