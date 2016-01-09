@@ -85,7 +85,7 @@ create_array <- function(geno, ped, pargeno, pp=NULL, pinfo=NULL,
                     message(sprintf("###>>> Divided Chr [ %s ] into [ %s ] chunks!", chrj, length(cks)))
                     
                     for(k in length(cks)){
-                        obj <- get_array_item(subgeno, myped, focalp, pp)
+                        obj <- get_array_item(subgeno=cks[[k]], myped, focalp, pp)
                         outfile <- paste0(outdir, "/", focalp,"_chr", chrj, "_chunk", k, ".RData"  )
                         save(file=outfile, list="obj")
                     }
