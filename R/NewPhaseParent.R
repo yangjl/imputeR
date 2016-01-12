@@ -135,11 +135,23 @@ phase_chunk <- function(GBS.array, win_length, haps, verbose, OR){
     
     ### phase last window
     winidx <- hetsites[(win_length*(wds-1)+1):length(hetsites)]
-    haps <- setup_haps(win_length=length(winidx)) 
-    win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
-    haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
+    if(length(winidx) >= (win_length + 5)){
+        
+        winidx <- hetsites[(win_length*(wds-1)+1):(win_length*wds)]
+        haps <- setup_haps(win_length)
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
+        ### last bit
+        winidx <- hetsites[(win_length*wds+1):length(hetsites)]
+        haps <- setup_haps(win_length=length(winidx))
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds+1]] <- list(win_hap, 1-win_hap, winidx)
+    }else{
+        haps <- setup_haps(win_length=length(winidx)) 
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
+    }
     if(verbose){ setTxtProgressBar(pb, wds) }
-    
     close(pb)
     ## list: hap1, hap2 and idx; info
     return(haplist)
