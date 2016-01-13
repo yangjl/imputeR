@@ -24,16 +24,20 @@
 #' phased <- impute_kid(GBS.array, winsize=10, verbose=TRUE)
 #' 
 #' 
-impute_kid <- function(geno, pp, ped, kid_idx=1:10, verbose=TRUE){
+impute_kid <- function(geno, pp, ped, verbose=TRUE){
     
     #ped <- GBS.array@pedigree
-    ped[, 1:3] <- apply(ped[, 1:3], 2, as.character)
+    #ped[, 1:3] <- apply(ped[, 1:3], 2, as.character)
     ## run one kid
-    ig <- lapply(kid_idx, function(i){
-        if(verbose){ message(sprintf("###>>> start to impute kid [ %s ] ...", i )) }
-        subgeno_all <- geno[, c("snpid", ped$proid[i])]
-        pp1 <- pp[[ped$parent1[i]]]
-        pp2 <- pp[[ped$parent2[i]]]
+    ig <- lapply(2:ncol(geno), function(i){
+        if(verbose){ message(sprintf("###>>> start to impute [ %s/%s ] kid ...", i-1, ncol(geno)-1 )) }
+        proid <- names(geno)[i]
+        subgeno_all <- geno[, c("snpid", proid)]
+        
+        pid1 <- subset(ped, proid == names(geno)[i])$parent1
+        pid2 <- subset(ped, proid == names(geno)[i])$parent2
+        pp1 <- pp[[ pid1 ]]
+        pp2 <- pp[[ pid2 ]]
         
         if(sum(pp1$snpid != subgeno_all$snpid) > 0 | sum(pp2$snpid != subgeno_all$snpid) > 0){
             stop("SNPID not in the same order!")

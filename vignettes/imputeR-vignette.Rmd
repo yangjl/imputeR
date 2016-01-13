@@ -96,7 +96,7 @@ $P(G) = P(\theta|G)$,
 where $P(G)$ is the probability of the genotype given the observed data.
 This consists of observed genotypes ($G'$) of mom, dad and kids. So:
 
-$$P(G_m) = \prod\limits_{i=1}^{k1}(G'_{k1}|G_m)\times \prod\limits_{i=1}^{k1}\sum_{d}^{0,1,2}(G'_{k2}|G_m, G_d) \times P(G'_m|G_m)$$
+$$P(G_m) = \prod\limits_{i=1}^{k1}(G'_{k1}|G_m)\times \prod\limits_{i=1}^{k2}\sum_{d}^{0,1,2}(G'_{k2}|G_m, G_d) \times P(G'_m|G_m)$$
 
 where $G'_{k1}|G_m)$ is the probability of a selfed kid given mom's genotype $G_m$. 
 $\sum_{d}^{0,1,2}(G'_{k2}|G_m, G_d)$ is the probability of a outcrossed kid given mom's genotype $G_m$ and sum over all dad's genotype $G_d$.
@@ -202,6 +202,9 @@ $$P(H_f|\theta) \propto  \sum_{i=1}^{k}\prod\limits_{l=1}^{n}{P(G'_{i,l}|H_1, H_
 - $P(K'_i|H_f, H_i)$ is the probability of $i$th kid's haplotype given parents' haplotype of $H_f$ and $H_i$.
 - $P(G'_{i,l} | H_f, H_i)$ is the probability of $i$th kid's genotype at locus $l$ given parents' haplotype of $H_f$ and $H_i$.
 
+
+$$P(H_m) = \prod\limits_{i=1}^{k1}(G'_{k1}|H_m)\times \prod\limits_{i=1}^{k2}(G'_{k2}|H_m, H_d)$$
+
 ## Simulated data
 
 We implemented a function `phase_parent` to do the phasing work. It was conducted in two steps by two major functions `phase_chunk` and `join_chunks`. First, we get the most likely focal parent's haplotype in a window. We then extend the window by one bp each time into a larger chromosomal chunk until the new haplotype in a window conflict with the existing chunk. In the conflict case, a new chromosomal chunk will be created. Second, we compute the possibilities of the haplotypes of two neighboring chunks. The most likely joined haplotype chunks will be returned by the function `join_chunks`.
@@ -243,6 +246,10 @@ $P(H_k|\theta) \propto \left( \prod\limits_{i=k}\prod\limits_{l=1}^{n}{P(G'_{i,l
 - $P(H)$ is the probability of the haplotype for a given window size of $n$.
 - $P(G'_{i,l}|H)$ is the probability of kid $i$ at locus $l$ for a given haplotype $H$.
 - The prior $P(H)$ is that all possible haplotypes of a given window size are equally likely.
+
+
+$$P(H_k) =  \prod\limits_{s=1}^n{P(G'_{s}|H_m, H_d)}$$
+
 
 ![alt text](impute_kid.png)
 
