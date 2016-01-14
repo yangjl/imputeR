@@ -22,44 +22,42 @@
 #' GBS.array <- sim.array(size.array=50, numloci=1000, imiss=0.2, selfing=0.5)
 #' 
 #' 
-phase_parent <- function(GBS.array, win_length=10, join_length=10, self_cutoff=20, verbose=TRUE){
+phase_parent <- function(GBS.array, win_length=10, join_length=10, verbose=TRUE, OR=log(3)){
 
     #### phasing chunks
-    if(verbose){ message(sprintf("###>>> start to phase halpotype chunks ...")) }
+    ped <- GBS.array@pedigree
+    hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
+    if(verbose){ message(sprintf("###>>> start to phase hap chunks with [ %s ] hetsites ...",
+                                 length(hetsites))) }
     haps <- setup_haps(win_length) 
-    
-    if(nrow(subset(GBS.array@pedigree, p1==p2)) > self_cutoff){
-        GBS.array@pedigree <- subset(GBS.array@pedigree, p1==p2)
-    }
     chunklist <- phase_chunk(GBS.array, win_length, haps, verbose)
     
     #### joining chunks
-    if(verbose){ message(sprintf("###>>> start to join hap chunks ...")) } 
-    if(length(chunklist) > 1){
-        out <- join_chunks(GBS.array, chunklist, verbose, join_length)
-        if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
-                                     length(chunklist), length(out))) } 
-        chunklist <- out
-    }else{
-        if(verbose){ message(sprintf("###>>> Only one chunk in total!")) } 
+    if(join_length > 0 & join_length <= win_length){
+        if(verbose){ message(sprintf("###>>> start to join hap chunks ...")) } 
+        if(length(chunklist) > 1){
+            out <- join_chunks(GBS.array, chunklist, verbose, join_length, OR)
+            if(verbose){ message(sprintf("###>>> Reduced chunks from [ %s ] to [ %s ]", 
+                                         length(chunklist), length(out))) } 
+            chunklist <- out
+        }else{
+            if(verbose){ message(sprintf("###>>> Only one chunk in total!")) } 
+        }
     }
-    
     #### return data.frame
-    out <- write_phase(chunklist)
-    ped <- GBS.array@pedigree
-    hetsites <- which(GBS.array@gbs_parents[[ped$p1[1]]]==1)
+    out <- output_phase(chunklist, info=GBS.array@snpinfo)
     if(verbose){ 
+        
         message(sprintf("###>>> phased [ %s percentage (%s/%s) ] of the heterozygote sites", 
            round(nrow(out)/length(hetsites),3)*100, nrow(out), length(hetsites) )) } 
-    #GBS.array@gbs_parents[[]]
     return(out)
 }
 
 #' @rdname phase_parent
-write_phase <- function(outchunks){
+output_phase <- function(outchunks, info){
     momdf <- data.frame()
     for(i in 1:length(outchunks)){
-        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], 
+        tem <- data.frame(chunk=i, idx=outchunks[[i]][[3]], snpid=info$snpid[outchunks[[i]][[3]]],
                           hap1=outchunks[[i]][[1]], hap2=outchunks[[i]][[2]])
         momdf <- rbind(momdf, tem)
     }
@@ -107,10 +105,9 @@ phase_error_rate <- function(GBS.array, phase){
 #' probs <- error_mx(hom.error=0.02, het.error=0.8, imiss=0.2) 
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' 
-phase_chunk <- function(GBS.array, win_length, haps,  verbose){
+phase_chunk <- function(GBS.array, win_length, haps, verbose, OR){
     
     ped <- GBS.array@pedigree
-    
     fidx <- unique(ped$p1)
     if(length(fidx) == 1){
         hetsites <- which(GBS.array@gbs_parents[[fidx]]==1)
@@ -119,82 +116,45 @@ phase_chunk <- function(GBS.array, win_length, haps,  verbose){
     }
     
     # gets all possible haplotypes for X hets 
-    dad_phase1 = dad_phase2 = as.numeric() 
-    win_hap = old_hap = nophase = as.numeric() 
     haplist <- list()
+    wds <- round(length(hetsites)/win_length, 0)
+    pb <- txtProgressBar(min = 1, max = wds, style = 3)
+    #for(wdi in 1:(wds-1)){
+    #    winidx <- hetsites[(win_length*(wdi-1)+1):(win_length*wdi)]
+    #    win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+    #    haplist[[wdi]] <- list(win_hap, 1-win_hap, winidx)
+    #    if(verbose){ setTxtProgressBar(pb, wdi) } 
+    #}
+    ### try to speed up a little bit
+    haplist <- lapply(1:(wds-1), function(wdi){
+        winidx <- hetsites[(win_length*(wdi-1)+1):(win_length*wdi)]
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        if(verbose){ setTxtProgressBar(pb, wdi) }
+        return(list(win_hap, 1-win_hap, winidx))
+    })
     
-    winstart <- i <- 1
-    ###### print progress bar
-    pb <- txtProgressBar(min = winstart, max = length(hetsites)-(win_length-1), style = 3)
-    
-    ## think about hetsites=0 or hetsites < win_length
-    while(winstart <= (length(hetsites)-(win_length-1)) ){
-        if(verbose){ setTxtProgressBar(pb, winstart) } 
-        winidx <- hetsites[winstart:(winstart+win_length-1)]
-        if(winstart==1){ 
-            #arbitrarily assign win_hap to one chromosome initially
-            # get the most likely dad haplotype, NULL is not allowed
-            win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
-            dad_phase1 <- win_hap
-            dad_phase2 <- 1-win_hap
-            idxstart <- 1
-        } else{
-            win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=FALSE)
-            ### comparing current hap with old hap except the last bp for hap extension
-            if(!is.null(win_hap)){
-                
-                same=sum(dad_phase1[(length(dad_phase1)-win_length+2):length(dad_phase1)]==win_hap[1:length(win_hap)-1])
-                
-                if(same == 0){ #totally opposite phase of last window
-                    dad_phase2[length(dad_phase2)+1] <- win_hap[length(win_hap)]
-                    dad_phase1[length(dad_phase1)+1] <- 1-win_hap[length(win_hap)]
-                } else if(same==(win_length-1) ){ #same phase as last window
-                    dad_phase1[length(dad_phase1)+1] <- win_hap[length(win_hap)]
-                    dad_phase2[length(dad_phase2)+1] <- 1-win_hap[length(win_hap)]
-                } else{
-                    diff1 <- sum(abs(dad_phase1[(length(dad_phase1)-win_length+2):length(dad_phase1)]-win_hap[1:length(win_hap)-1]))
-                    diff2 <- sum(abs(dad_phase2[(length(dad_phase1)-win_length+2):length(dad_phase1)]-win_hap[1:length(win_hap)-1]))
-                    if(diff1 > diff2){ #dad_phase1 is less similar to current inferred hap
-                        dad_phase2[length(dad_phase2)+1] <- win_hap[length(win_hap)]
-                        dad_phase1[length(dad_phase1)+1] <- 1-win_hap[length(win_hap)]
-                    } else{ #dad_phase1 is more similar
-                        dad_phase1[length(dad_phase1)+1] <- win_hap[length(win_hap)]
-                        dad_phase2[length(dad_phase2)+1] <- 1-win_hap[length(win_hap)]
-                    }
-                }
-            } else {
-                ### potential recombination in kids, output previous haps and jump to next non-overlap window -JLY###
-                idxend <- winstart + win_length -2
-                haplist[[i]] <- list(dad_phase1, dad_phase2, hetsites[idxstart:idxend])
-                i <- i +1
-                
-                ### warning(paste("Likely recombination at position", winstart+1, sep=" "))
-                ### if new window is still ambiguous, add 1bp and keep running until find the best hap
-                winstart <- winstart + win_length -2
-                while(is.null(win_hap)){ 
-                    winstart <- winstart + 1
-                    win_hap <- jump_win(GBS.array, winstart, win_length, hetsites, haps)
-                    if(is.null(win_hap)){
-                        nophase <- c(nophase, hetsites[winstart])
-                    }
-                }
-                idxstart <- winstart
-                dad_phase1 <- win_hap
-                dad_phase2 <- 1-win_hap
-            }
-        }
-        winstart <- winstart + 1
+    ### phase last window
+    winidx <- hetsites[(win_length*(wds-1)+1):length(hetsites)]
+    if(length(winidx) >= (win_length + 5)){
+        
+        winidx <- hetsites[(win_length*(wds-1)+1):(win_length*wds)]
+        haps <- setup_haps(win_length)
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
+        ### last bit
+        winidx <- hetsites[(win_length*wds+1):length(hetsites)]
+        haps <- setup_haps(win_length=length(winidx))
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds+1]] <- list(win_hap, 1-win_hap, winidx)
+    }else{
+        haps <- setup_haps(win_length=length(winidx)) 
+        win_hap <- infer_dip(GBS.array, winidx, haps, returnhap=TRUE)
+        haplist[[wds]] <- list(win_hap, 1-win_hap, winidx)
     }
+    if(verbose){ setTxtProgressBar(pb, wds) }
     close(pb)
-    ### return the two haplotypes
-    #myh1 <- replace(estimated_mom/2, hetsites, mom_phase1)
-    #myh2 <- replace(estimated_mom/2, hetsites, 1-mom_phase1)
-    #return(data.frame(h1=myh1, h2=myh2))
-    #if(verbose){ message(sprintf(">>> phasing done!")) }
-    haplist[[i]] <- list(dad_phase1, dad_phase2, hetsites[idxstart:length(hetsites)])
     ## list: hap1, hap2 and idx; info
     return(haplist)
-    #return(list(haplist=haplist, info=list(het=hetsites, nophase=nophase)))
 }
 
 #' @rdname phase_chunk
@@ -234,8 +194,19 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
             if(!is.null(nrow(mymom))){ #phased mom
                 temmom <- mymom[winidx, ]
                 mom_geno <- temmom$hap1 + temmom$hap2
-                mom_haps <- setup_mom_haps(temmom)
-                
+                missidx <- which(mom_geno > 2)
+                if(length(missidx) >0){
+                    mom_geno <- mom_geno[-missidx]
+                    if(length(mom_geno) == 0){
+                        maxlog1 = 0
+                    }else{
+                        mom_haps <- setup_mom_haps(temmom[-missidx, c("hap1", "hap2", "chunk")])
+                        maxlog_hap_ockid(dad_hap[-missidx], mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx[-missidx]])
+                    }
+                }else{
+                    mom_haps <- setup_mom_haps(temmom[, c("hap1", "hap2", "chunk")])
+                    maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
+                }
             }else{ #unphased mom
                 mom_geno <- mymom[winidx]
                 het_idx <- which(mom_geno==1)
@@ -250,9 +221,9 @@ sum_max_log_1hap <- function(GBS.array, winidx, dad_hap=haps[[a]]){
                         return(temhap)})
                 }else{
                     mom_haps <- list(mom_geno/2)
-                }   
+                }
+                maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
             }
-            maxlog_hap_ockid(dad_hap, mom_geno, mom_haps, kid_geno=kgeno[[ped1$kid[x]]][winidx])
         })
     }else{
         maxlog1 = 0
@@ -363,7 +334,7 @@ jump_win <- function(GBS.array, winstart, win_length, hetsites, haps){
 #' chunklist <- phase_chunk(GBS.array, win_length, haps, verbose=TRUE)
 #' res <- join_chunks(GBS.array, chunklist, join_length, verbose=TRUE)
 #' 
-join_chunks <- function(GBS.array, chunklist, join_length, verbose){
+join_chunks <- function(GBS.array, chunklist, join_length, verbose, OR){
     outhaplist <- list(list())
     outhaplist[[1]] <- chunklist[[1]] ### store the extended haps: hap1, hap2 and idx
     i <- 1
@@ -379,7 +350,7 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
                               list(oldchunk[[1]], newchunk[[2]]))
         
         ## link previous and current chunks
-        temhap <- link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length)
+        temhap <- link_dad_haps(GBS.array, dad_haps_lofl, hapidx, join_length, OR)
         temhap <- c(temhap[[1]], temhap[[2]])
         if(!is.null(temhap)){
             outold <- outhaplist[[i]][[1]]
@@ -411,7 +382,7 @@ join_chunks <- function(GBS.array, chunklist, join_length, verbose){
 
 #' @rdname join_chunks
 #' 
-link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
+link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length, OR){
     ### hapidx: a list of idx [[1]] chunk0; [[2]]chunk1
     
     ### limit the join len to reduce computational burden
@@ -434,10 +405,32 @@ link_dad_haps <- function(GBS.array, dad_haps_lofl, hapidx, join_length){
     } )
     phase_probs <- unlist(phase_probs)
     #if multiple haps tie, return two un-phased haps
+     
     if(length(which(phase_probs==max(phase_probs)))>1){
         return(NULL)
-    } else {
-        return(dad_haps_lofl[[which.max(phase_probs)]])
-    }
+    }else{
+        v <- phase_probs
+        n <- length(v)
+        t <- max(v) - sort(v, partial=n-1)[n-1]
+        if(t < OR){
+            return(NULL)
+        }else{
+            return(dad_haps_lofl[[which.max(phase_probs)]]) 
+        }
+    } 
 }
-
+############################################################################
+# Setup all possible haplotypes for window of X heterozgous sites
+# This needs to be fixed to remove redundancy. E.g. 010 is the same as 101 and 1010 is same as 0101. 
+# I don't think should bias things in the meantime, just be slow.
+setup_haps <- function(win_length){
+    if(win_length <= 20){
+        alist <- lapply(1:win_length, function(a) c(0,1) )
+        ### give a combination of all 0,1 into a data.frame
+        hapdf <- expand.grid(alist)[1:2^(win_length-1),]
+        ### split the data.frame into a list
+        return(as.list(as.data.frame(t(hapdf)))) 
+    }else{
+        stop("!!! Can not handle [win_length > 20] !")
+    }   
+}

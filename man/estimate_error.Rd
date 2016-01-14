@@ -7,7 +7,7 @@
 \alias{kid_het_err}
 \title{\code{Estimate genotyping error}}
 \usage{
-estimate_error(geno, ped, self_cutoff, depth_cutoff)
+estimate_error(geno, ped, self_cutoff, depth_cutoff, est_kids = FALSE)
 
 kid_het_err(geno, depth_cutoff, ped, pinfo, verbose)
 

@@ -80,7 +80,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
         pg_obs <- gen_error[inferred_parent, parents[[obs_parent]][locus]+1] #+1 because obs_parent is 0,1, or 2
     
         #P(G)
-        pg <- hw_probs(p_locus)[inferred_parent]
+        #pg <- hw_probs(p_locus)[inferred_parent]
                 
         #P(kids|G) sum of logs instead of product
         pkg <- sum(sapply(1:length(obs_kids), function(z){
@@ -89,17 +89,25 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
                 log(sum(probs[[inferred_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
             }else{
                 if(true_p[z] == 1){
-                    log(sum(probs[[parents[[other_parents[z]]][locus]+1]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    if(parents[[other_parents[z]]][locus] == 3){
+                        #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                        sum(sapply(1:3, function(second_parent) #log(hw_probs(p_locus)[second_parent]) + 
+                            log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
+                                log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                        ))
+                    }else{
+                        log(sum(probs[[parents[[other_parents[z]]][locus]+1]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
+                    }
                 }else{
                     #log(sum(probs[[idx]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
-                    sum(sapply(1:3, function(second_parent) log(hw_probs(p_locus)[second_parent]) + 
+                    sum(sapply(1:3, function(second_parent) #log(hw_probs(p_locus)[second_parent]) + 
                                    log(gen_error[second_parent, parents[[other_parents[z]]][locus]+1])+   
                                    log(sum(probs[[second_parent]][[inferred_parent]][, obs_kids[[z]][locus]+1]))
                     ))
                 }
             }}))
                
-        obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)+log(pg)
+        obs_parent_probs[inferred_parent] <- pkg+log(pg_obs)#+log(pg)
     }
     return(obs_parent_probs)
 }
@@ -137,7 +145,7 @@ impute_one_site <- function(locus, gen_error, p_locus, probs, parents, obs_paren
 #' Otherwise it will return the genotypes that pass the specified oddratio; 
 #' if no oddratio is specied (oddratio=NULL) then this returns the maximum likelihood genotypes
 #' 
-parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){ 
+parentgeno <- function(geno, oddratio=0.69, returnall=TRUE){ 
     geno$OR <- apply(geno, 1, function(v){
         n <- length(v)
         return(max(v) - sort(v, partial=n-1)[n-1])  
@@ -147,6 +155,10 @@ parentgeno <- function(geno, oddratio=0.6931472, returnall=TRUE){
     })
     geno$gor <- 3 # 3 is missing data
     geno[geno$OR > oddratio, ]$gor <- geno[geno$OR > oddratio, ]$gmax
+    
+    if(nrow(geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]) >0){
+        geno[geno[,1] ==0 & geno[,2]==0 & geno[,3]==0, ]$gmax <- 3
+    }
     
     if(returnall){
         return(geno)

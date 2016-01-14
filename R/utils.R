@@ -1,7 +1,7 @@
 #' Return error matrices
 #'
-#' @param hom.error homozygous error rate, default=0.02.
-#' @param het.error heterozygous error rate, default=0.8.
+#' @param mx A error matrix.
+#' @param merr Error value for missing data.
 #' @return \code{error_mx} returns a list of three matrices.
 #' In this matrix,
 #' row1 is true_gen 00, row2 is true_gen 01, row3 is true_gen 11.
@@ -35,7 +35,8 @@ error_probs <- function(mx, merr){
     
     return(probs)
 }
-#' @rdname error_mx
+
+#' @rdname error_probs
 gen_error_mat <- function(major.error, het.error, minor.error){
     mx <- matrix(c(1-major.error,major.error/2,major.error/2,het.error/2,
                    1-het.error,het.error/2,minor.error/2,minor.error/2,1-minor.error),
@@ -45,7 +46,7 @@ gen_error_mat <- function(major.error, het.error, minor.error){
     return(mx)
 }
 
-#' @rdname error_mx
+#' @rdname error_probs
 error_mx2 <- function(major.error, het.error, minor.error){
     mx <- gen_error_mat(major.error, het.error, minor.error)
     probs <- vector("list",3)
@@ -95,33 +96,18 @@ getsfs <- function(x=1:99/100){
 hw_probs <- function(x){ return(c((1-x)^2,2*x*(1-x),x^2))}
 ############################################################################
 
-kids_errs <- function(simk, imputek){
+kids_geno_err <- function(GBS.array, kidgeno){
     #
-    out <- data.frame()
-    for(i in 1:length(simk)){
-        
-        imputeki <- imputek[[i]][[3]]
-        simki <- simk[[i]][[2]][imputeki$idx, ]
-        
-        names(simki) <- c("shap1", "shap2", "obs")
-        comb0 <- cbind(simki, imputeki)
-        comb <- subset(comb0, k1 != 3)
-        err = 0
-        for(j in unique(comb$chunk)){
-            sub <- subset(comb, chunk == j)
-            idx1 <- which.max(c(cor(sub$k1, sub$shap1), cor(sub$k1, sub$shap2)) )
-            err1 <- sum(sub$k1 != sub[, idx1])
-            idx2 <- which.max(c(cor(sub$k2, sub$shap1), cor(sub$k2, sub$shap2)) )
-            err2 <- sum(sub$k2 != sub[, idx2])
-            err <- err + err1 + err2
-        }
-        tem <- data.frame(kid=i, chunks=length(unique(comb$chunk)), err=err, tot=nrow(simki), miss= 1-nrow(comb)/nrow(comb0))
-        tem$geno <- sum(comb$shap1+comb$shap2 != comb$k1+comb$k2)
-        out <- rbind(out, tem)
+    ped <- GBS.array@pedigree
+    geno <- GBS.array@true_kids
+    ped$err <- -3
+    
+    te <- 0
+    for(i in 1:length(geno)){
+        a <- sum(geno[[i]] != 3 & kidgeno[,i] !=3 & geno[[i]] != kidgeno[,i])
+        ped$err[i] <- a/length(geno[[i]])
     }
-    out$phaserate <- out$err/out$tot
-    out$genorate <- out$geno/out$tot
-    return(out)
+    return(ped)
 }
 
 #### phasing results
@@ -143,6 +129,7 @@ mom_phasing_error <- function(phasemom, sim){
     out$rate <- out$err/out$loci
     return(out)
 }
+
 #### dad phasing results
 dad_phasing_error <- function(newdad, simdad){
     names(newdad)[3:4] <- c("ihap1", "ihap2")
@@ -170,7 +157,7 @@ dad_phasing_error <- function(newdad, simdad){
 #' @param GBS.array Input a GBS.array object.
 #' @param phased.parents Whether use the phased non-focal parents.
 #' 
-get_true_GBS <- function(GBS.array, phased.parents=TRUE){
+get_true_GBS <- function(GBS.array, phased.parents=TRUE, parents.mr=0.1){
     
     ped <- GBS.array@pedigree
     if(length(unique(ped$p1)) != 1){
@@ -186,6 +173,9 @@ get_true_GBS <- function(GBS.array, phased.parents=TRUE){
             tem <- GBS.array@true_parents[[i]]
             tem$idx <- 1:nrow(tem)
             tem$chunk <- 1
+            sites <- sample(1:nrow(tem), nrow(tem)*parents.mr)
+            tem[sites, ]$hap1 <- 3
+            tem[sites, ]$hap2 <- 3
             GBS.array@gbs_parents[[i]] <- tem
         }
         

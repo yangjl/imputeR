@@ -4,7 +4,7 @@
 \alias{get_true_GBS}
 \title{\code{Method for GBS.array}}
 \usage{
-get_true_GBS(GBS.array, phased.parents = TRUE)
+get_true_GBS(GBS.array, phased.parents = TRUE, parents.mr = 0.1)
 }
 \arguments{
 \item{GBS.array}{Input a GBS.array object.}
