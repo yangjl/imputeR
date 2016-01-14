@@ -166,8 +166,12 @@ pedinfo <- function(ped){
     sf <- subset(ped, parent1 == parent2)
     ox <- subset(ped, parent1 != parent2)
     
-    pinfo <- data.frame(table(sf$parent1))
-    names(pinfo) <- c("founder", "nselfer")
+    if(nrow(sf) > 0){
+        pinfo <- data.frame(table(sf$parent1))
+        names(pinfo) <- c("founder", "nselfer")
+    }else{
+        pinfo <- data.frame(founder=NA, nselfer=0)
+    }
     
     oxinfo <- data.frame(table(c(ox$parent1, ox$parent2)))
     if(nrow(oxinfo) > 0){
@@ -180,6 +184,7 @@ pedinfo <- function(ped){
     }else{
         pinfo$nox <- 0
     }
+    pinfo <- subset(pinfo, pinfo[, 1] != 0)
 
     pinfo$tot <- pinfo$nselfer + pinfo$nox
     message(sprintf("###>>> Detected [ %s ] parents with [ %s/%s ] kids/haps",
