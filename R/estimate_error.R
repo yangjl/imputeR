@@ -8,7 +8,7 @@
 #' parent1 (the first parent id), parent2 (the 2nd parent id). 
 #' @param imiss_cutoff cutoff for individual missing rate, default=0.8.
 #' @param size_cutoff Minimum family size required for imputation, default=40.
-#' 
+#' @param check_kid_err whether to check kids error based on the parental families.
 #' @return Return error matrix.
 #'   See \url{https://github.com/yangjl/imputeR/blob/master/vignettes/imputeR-vignette.pdf} for more details.
 #'   
@@ -19,17 +19,14 @@
 #' geno <- fread("largedata/lcache/teo_recoded.txt")
 #' estimate_error(geno, ped, self_cutoff=30, depth_cutoff=10)
 #' 
-estimate_error <- function(geno, ped, self_cutoff, depth_cutoff, est_kids=FALSE){
+estimate_error <- function(geno, ped, self_cutoff, depth_cutoff, check_kid_err=FALSE){
     
-    if( sum(!unique(c(ped$proid, ped$parent1, ped$parent2)) %in% names(geno)) > 0 ){
-        stop("###>>> Some plant ID could not be found in the genotype file !")
-    }else{
-        #geno <- as.data.frame(geno)
-        message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), nrow(ped)))
-
-        pinfo <- pedinfo(ped)
-        pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
-    }
+    geno <- as.data.frame(geno)
+    message(sprintf("###>>> Loaded [ %s ] biallelic loci for [ %s ] plants", nrow(geno), ncol(geno) -3))
+    
+    ped[,1:3] <- apply(ped[,1:3], 2, as.character)
+    pinfo <- pedinfo(ped)
+    pinfo <- pinfo[order(pinfo$tot, decreasing=TRUE),]
     
     pinfo <- subset(pinfo, nselfer > self_cutoff)
     message(sprintf("###>>> Calculating error rate using [ %s ] selfed families ...", nrow(pinfo) ))
@@ -47,7 +44,7 @@ estimate_error <- function(geno, ped, self_cutoff, depth_cutoff, est_kids=FALSE)
         out1 <- rbind(out1, err)
     }
     
-    if(est_kids){
+    if(check_kid_err){
         out2 <- kid_het_err(geno, depth_cutoff, ped, pinfo, verbose=TRUE)
         return(list(out1, out2))
     }else{
