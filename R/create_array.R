@@ -12,8 +12,6 @@
 #' The 2nd column indicates whether the true parental genotype is available.
 #' @param outdir path of the output dir.
 #' @param bychr Wether to split the data by 10 chromsomes.
-#' @param snpinfo Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).
-#' @param size_cutoff Minimum family size required for calculate snpinfo, default=30.
 #' 
 #' @return Return updated Geno4imputeR object. 
 #' The GBS.array objects will be output to the given directory by family and chr.
