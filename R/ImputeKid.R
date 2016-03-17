@@ -50,8 +50,10 @@ impute_kid <- function(geno, pp, ped, verbose=TRUE){
     
     if(verbose){ message(sprintf("###>>> Prepare data.frame for output!")) }
     outg <- ig[[1]]
-    for(i in 2:length(ig)){
-        outg <- merge(outg, ig[[i]], by="snpid")
+    if(length(ig) > 1){
+        for(i in 2:length(ig)){
+            outg <- merge(outg, ig[[i]], by="snpid")
+        }
     }
     return(outg)
 }

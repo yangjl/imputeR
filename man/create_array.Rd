@@ -40,10 +40,6 @@ The 2nd column indicates whether the true parental genotype is available.}
 \item{outdir}{path of the output dir.}
 
 \item{bychr}{Wether to split the data by 10 chromsomes.}
-
-\item{snpinfo}{Wether to calculate snpinfo (this data.frame can be obtained by using function of get_snpinfo).}
-
-\item{size_cutoff}{Minimum family size required for calculate snpinfo, default=30.}
 }
 \value{
 Return updated Geno4imputeR object. 
